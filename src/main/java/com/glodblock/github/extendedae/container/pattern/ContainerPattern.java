@@ -6,6 +6,7 @@ import appeng.api.stacks.GenericStack;
 import appeng.crafting.pattern.EncodedPatternItem;
 import appeng.items.misc.WrappedGenericStack;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import lombok.var;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
@@ -35,7 +36,8 @@ public abstract class ContainerPattern extends AbstractContainerMenu {
         super(menuType, id);
         this.stack = stack;
         var item = this.stack.getItem();
-        if (item instanceof EncodedPatternItem pattern) {
+        if (item instanceof EncodedPatternItem) {
+            EncodedPatternItem pattern = (EncodedPatternItem) item;
             this.details = pattern.decode(stack, world, true);
             this.analyse();
         } else {
@@ -128,7 +130,6 @@ public abstract class ContainerPattern extends AbstractContainerMenu {
             return ItemStack.EMPTY;
         }
 
-        // For item stack size rendering
         public long getActualAmount() {
             return this.size;
         }
@@ -144,13 +145,12 @@ public abstract class ContainerPattern extends AbstractContainerMenu {
 
         @NotNull
         private ItemStack getAsItem(GenericStack stack) {
-            if (stack != null && stack.what() instanceof AEItemKey itemKey) {
+            if (stack != null && stack.what() instanceof AEItemKey) {
+                AEItemKey itemKey = (AEItemKey) stack.what();
                 this.size = stack.amount();
                 return itemKey.toStack();
             }
             return GenericStack.wrapInItemStack(stack);
         }
-
     }
-
 }
