@@ -9,6 +9,7 @@ import appeng.menu.SlotSemantics;
 import com.glodblock.github.extendedae.api.CraftingMode;
 import com.glodblock.github.extendedae.client.ExSemantics;
 import com.glodblock.github.extendedae.client.gui.GuiExCraftingTerminal;
+import lombok.var;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
@@ -24,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class StonecutterPanel extends ExPanel {
 
@@ -44,7 +46,6 @@ public class StonecutterPanel extends ExPanel {
 
     @Override
     public void updateBeforeRender() {
-        // Set up the scroll bar to have a range only for the rows outside the viewport
         var totalRows = (this.menu.getStonecutterRecipes().size() + COLS - 1) / COLS;
         this.scrollbar.setRange(0, totalRows - ROWS, ROWS);
     }
@@ -130,9 +131,8 @@ public class StonecutterPanel extends ExPanel {
                 .map(id -> this.getLevel().getRecipeManager().byKey(id))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .toList();
+                .collect(Collectors.toList());
         if (recipes.size() != this.menu.getStonecutterRecipes().size()) {
-            // Recipe isn't match between server and client
             return;
         }
         var startIndex = this.scrollbar.getCurrentScroll() * COLS;
