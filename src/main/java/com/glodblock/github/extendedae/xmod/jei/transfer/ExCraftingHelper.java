@@ -10,10 +10,13 @@ import appeng.menu.me.common.MEStorageMenu;
 import appeng.util.CraftingRecipeUtil;
 import com.glodblock.github.extendedae.container.ContainerExCraftingTerminal;
 import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 public class ExCraftingHelper {
@@ -21,11 +24,8 @@ public class ExCraftingHelper {
     private static final Comparator<GridInventoryEntry> ENTRY_COMPARATOR = Comparator.comparing(GridInventoryEntry::getStoredAmount);
 
     public static void performTransfer(ContainerExCraftingTerminal menu, Recipe<?> recipe, int recipeSize, boolean craftMissing) {
-        // We send the items in the recipe in any case to serve as a fallback in case the recipe is transient
-        var templateItems = findGoodTemplateItems(recipe, recipeSize, menu);
-        var recipeId = recipe.getId();
-        // Don't transmit a recipe id to the server in case the recipe is not actually resolvable
-        // this is the case for recipes synthetically generated for JEI
+        NonNullList<ItemStack> templateItems = findGoodTemplateItems(recipe, recipeSize, menu);
+        ResourceLocation recipeId = recipe.getId();
         if (menu.getPlayer().level().getRecipeManager().byKey(recipe.getId()).isEmpty()) {
             AELog.debug("Cannot send recipe id %s to server because it's transient", recipeId);
             recipeId = null;
@@ -34,17 +34,15 @@ public class ExCraftingHelper {
     }
 
     private static NonNullList<ItemStack> findGoodTemplateItems(Recipe<?> recipe, int recipeSize, MEStorageMenu menu) {
-        var ingredientPriorities = EncodingHelper.getIngredientPriorities(menu, ENTRY_COMPARATOR);
-        var templateItems = NonNullList.withSize(recipeSize, ItemStack.EMPTY);
-        var ingredients = CraftingRecipeUtil.ensure3by3CraftingMatrix(recipe);
+        NonNullList<ItemStack> templateItems = NonNullList.withSize(recipeSize, ItemStack.EMPTY);
+        List<Ingredient> ingredients = CraftingRecipeUtil.ensure3by3CraftingMatrix(recipe);
         for (int i = 0; i < Math.min(ingredients.size(), recipeSize); i++) {
-            var ingredient = ingredients.get(i);
+            Ingredient ingredient = ingredients.get(i);
             if (!ingredient.isEmpty()) {
-                // Try to find the best item. In case the ingredient is a tag, it might contain versions the
-                // player doesn't actually have
-                var stack = ingredientPriorities.entrySet()
+                ItemStack stack = EncodingHelper.getIngredientPriorities(menu, ENTRY_COMPARATOR)
+                        .entrySet()
                         .stream()
-                        .filter(e -> e.getKey() instanceof AEItemKey itemKey && itemKey.matches(ingredient))
+                        .filter(e -> e.getKey() instanceof AEItemKey && ((AEItemKey) e.getKey()).matches(ingredient))
                         .max(Comparator.comparingInt(Map.Entry::getValue))
                         .map(e -> ((AEItemKey) e.getKey()).toStack())
                         .orElse(ingredient.getItems()[0]);
@@ -53,5 +51,4 @@ public class ExCraftingHelper {
         }
         return templateItems;
     }
-
 }
