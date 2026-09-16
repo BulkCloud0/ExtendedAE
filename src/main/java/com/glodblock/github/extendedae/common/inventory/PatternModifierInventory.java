@@ -4,6 +4,7 @@ import appeng.api.implementations.menuobjects.ItemMenuHost;
 import appeng.api.inventories.InternalInventory;
 import appeng.util.inv.AppEngInternalInventory;
 import appeng.util.inv.InternalInventoryHost;
+import lombok.var;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -59,14 +60,19 @@ public class PatternModifierInventory extends ItemMenuHost implements InternalIn
     }
 
     public AppEngInternalInventory getInventoryByName(String name) {
-        return switch (name) {
-            case "patternInv" -> this.patternInv;
-            case "targetInv" -> this.targetInv;
-            case "blankPatternInv" -> this.blankPatternInv;
-            case "clonePatternInv" -> this.clonePatternInv;
-            case "replaceInv" -> this.replaceInv;
-            default -> null;
-        };
+        switch (name) {
+            case "patternInv":
+                return this.patternInv;
+            case "targetInv":
+                return this.targetInv;
+            case "blankPatternInv":
+                return this.blankPatternInv;
+            case "clonePatternInv":
+                return this.clonePatternInv;
+            case "replaceInv":
+                return this.replaceInv;
+            default:
+                return null;
+        }
     }
-
 }
