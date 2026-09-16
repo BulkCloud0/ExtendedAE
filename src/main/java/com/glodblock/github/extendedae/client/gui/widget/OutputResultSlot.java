@@ -19,6 +19,7 @@ import appeng.util.inv.CarriedItemInventory;
 import appeng.util.inv.PlayerInternalInventory;
 import appeng.util.prioritylist.IPartitionList;
 import com.glodblock.github.extendedae.container.ContainerExCraftingTerminal;
+import lombok.var;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
@@ -35,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class OutputResultSlot extends AppEngSlot {
@@ -77,9 +79,6 @@ public class OutputResultSlot extends AppEngSlot {
         this.checkTakeAchievements(stack);
     }
 
-    /**
-     * the itemStack passed in is the output - ie, iron ingots, and pickaxes, not ore and wood.
-     */
     @Override
     protected void checkTakeAchievements(ItemStack stack) {
         stack.onCraftedBy(this.player.level(), this.player, this.amountCrafted);
@@ -92,10 +91,7 @@ public class OutputResultSlot extends AppEngSlot {
     }
 
     public void doClick(InventoryAction action, Player who) {
-        if (this.getItem().isEmpty()) {
-            return;
-        }
-        if (this.isRemote()) {
+        if (this.getItem().isEmpty() || this.isRemote()) {
             return;
         }
         final var howManyPerCraft = this.getItem().getCount();
@@ -113,8 +109,6 @@ public class OutputResultSlot extends AppEngSlot {
             target = new CarriedItemInventory(getMenu());
             maxTimesToCraft = (int) Math.floor((double) this.getItem().getMaxStackSize() / (double) howManyPerCraft);
         } else {
-            // This is a shortcut to ensure that for mods that create recipes with result counts larger than
-            // the max stack size, it remains possible to pick up those items at least _once_.
             if (getMenu().getCarried().isEmpty()) {
                 var result = this.craftItem(who, this.storage, this.storage.getAvailableStacks());
                 if (!result.isEmpty()) {
@@ -126,21 +120,16 @@ public class OutputResultSlot extends AppEngSlot {
             target = new CarriedItemInventory(getMenu());
             maxTimesToCraft = 1;
         }
-        // Since we may be crafting multiple times, we have to ensure that we keep crafting the same item.
-        // This may not be the case if not all crafting grid slots have the same number of items in them,
-        // and some ingredients run-out after a few crafts.
+
         var itemAtStart = this.getItem().copy();
         if (itemAtStart.isEmpty()) {
             return;
         }
         boolean playSound = false;
         for (var x = 0; x < maxTimesToCraft; x++) {
-            // Stop if the recipe output has changed (i.e. due to fully consumed input slots)
             if (!ItemStack.isSameItemSameTags(itemAtStart, getItem())) {
                 return;
             }
-
-            // Stop if the target inventory is full
             if (!target.simulateAdd(itemAtStart).isEmpty()) {
                 return;
             }
@@ -151,10 +140,8 @@ public class OutputResultSlot extends AppEngSlot {
                 playSound = true;
             }
             var extra = target.addItems(result);
-
-            // If we couldn't actually add what we crafted, we drop it and stop
             if (!extra.isEmpty()) {
-                Platform.spawnDrops(who.level(), who.blockPosition(), List.of(extra));
+                Platform.spawnDrops(who.level(), who.blockPosition(), Collections.singletonList(extra));
                 if (playSound) {
                     this.menu.playSound();
                 }
@@ -189,16 +176,12 @@ public class OutputResultSlot extends AppEngSlot {
     }
 
     private ItemStack craftItem(Player p, MEStorage inv, KeyCounter all) {
-        // update crafting matrix...
         var is = this.getItem().copy();
         if (is.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        // Make sure the item in the slot is still the same item as before
         final var set = new ItemStack[this.craftingGrid.size()];
-        // Safeguard for empty slots in the inventory for now
         Arrays.fill(set, ItemStack.EMPTY);
-        // add one of each item to the items on the board...
         var level = p.level();
         if (!level.isClientSide()) {
             final var ic = new TransientCraftingContainer(p.containerMenu, 3, 3);
@@ -228,9 +211,7 @@ public class OutputResultSlot extends AppEngSlot {
 
     private void postCraft(Player p, MEStorage inv, ItemStack[] set) {
         final List<ItemStack> drops = new ArrayList<>();
-        // add one of each item to the items on the board...
         if (!p.getCommandSenderWorld().isClientSide()) {
-            // set new items onto the crafting table...
             for (var x = 0; x < this.craftInv.size(); x++) {
                 if (this.craftInv.getStackInSlot(x).isEmpty()) {
                     this.craftInv.setItemDirect(x, set[x]);
@@ -238,7 +219,6 @@ public class OutputResultSlot extends AppEngSlot {
                     var what = AEItemKey.of(set[x]);
                     var amount = set[x].getCount();
                     var inserted = inv.insert(what, amount, Actionable.MODULATE, this.mySrc);
-                    // eek! put it back!
                     if (what != null && inserted < amount) {
                         drops.add(what.toStack((int) (amount - inserted)));
                     }
@@ -300,7 +280,8 @@ public class OutputResultSlot extends AppEngSlot {
             var checkFuzzy = providedTemplate.hasTag() || providedTemplate.isDamageableItem();
             if (items != null && checkFuzzy) {
                 for (var x : items) {
-                    if (x.getKey() instanceof AEItemKey itemKey) {
+                    if (x.getKey() instanceof AEItemKey) {
+                        AEItemKey itemKey = (AEItemKey) x.getKey();
                         if (providedTemplate.getItem() == itemKey.getItem() && !itemKey.matches(output)) {
                             ci.setItem(slot, itemKey.toStack());
                             if (r.matches(ci, level) && ItemStack.matches(r.assemble(ci, level.registryAccess()), output)) {
