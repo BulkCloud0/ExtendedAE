@@ -17,6 +17,7 @@ import com.glodblock.github.extendedae.client.ExSemantics;
 import com.glodblock.github.extendedae.common.tileentities.TileExMolecularAssembler;
 import com.glodblock.github.glodium.network.packet.sync.IActionHolder;
 import com.glodblock.github.glodium.network.packet.sync.Paras;
+import lombok.var;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
@@ -68,7 +69,8 @@ public class ContainerExMolecularAssembler extends UpgradeableMenu<TileExMolecul
     public void showPage() {
         for (int x = 0; x < TileExMolecularAssembler.MAX_THREAD; x ++) {
             for (var slot : this.getSlots(SLOT[x])) {
-                if (slot instanceof AppEngSlot as) {
+                if (slot instanceof AppEngSlot) {
+                    AppEngSlot as = (AppEngSlot) slot;
                     as.setSlotEnabled(this.page == x);
                 }
             }
