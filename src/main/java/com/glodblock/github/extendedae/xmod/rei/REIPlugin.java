@@ -12,6 +12,7 @@ import com.glodblock.github.extendedae.common.EPPItemAndBlock;
 import com.glodblock.github.extendedae.container.pattern.ContainerPattern;
 import com.glodblock.github.extendedae.util.Ae2ReflectClient;
 import dev.architectury.event.CompoundEventResult;
+import lombok.var;
 import me.shedaniel.math.Rectangle;
 import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
 import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
@@ -33,16 +34,18 @@ public class REIPlugin implements REIClientPlugin {
             return;
         }
         registry.registerFocusedStack((screen, mouse) -> {
-            if (screen instanceof GuiPattern<?> patternScreen) {
+            if (screen instanceof GuiPattern<?>) {
+                GuiPattern<?> patternScreen = (GuiPattern<?>) screen;
                 var stackWithBounds = patternScreen.getSlotUnderMouse();
-                if (stackWithBounds instanceof ContainerPattern.DisplayOnlySlot dpSlot) {
+                if (stackWithBounds instanceof ContainerPattern.DisplayOnlySlot) {
+                    ContainerPattern.DisplayOnlySlot dpSlot = (ContainerPattern.DisplayOnlySlot) stackWithBounds;
                     var genStack = dpSlot.getItem();
                     if (!genStack.isEmpty()) {
                         var item = genStack.getItem();
-                        var key = item instanceof WrappedGenericStack wgs
-                                ? wgs.unwrapWhat(genStack) : AEItemKey.of(genStack);
-                        var amount = item instanceof WrappedGenericStack wgs
-                                ? wgs.unwrapAmount(genStack) : dpSlot.getActualAmount();
+                        var key = item instanceof WrappedGenericStack
+                                ? ((WrappedGenericStack) item).unwrapWhat(genStack) : AEItemKey.of(genStack);
+                        var amount = item instanceof WrappedGenericStack
+                                ? ((WrappedGenericStack) item).unwrapAmount(genStack) : dpSlot.getActualAmount();
                         if (key != null && amount > 0) {
                             var stack = new GenericStack(key, amount);
                             for (var converter : IngredientConverters.getConverters()) {
