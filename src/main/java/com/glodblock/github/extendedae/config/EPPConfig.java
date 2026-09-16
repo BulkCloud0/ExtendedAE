@@ -29,23 +29,18 @@ public class EPPConfig {
     private static final ForgeConfigSpec.IntValue EX_BUS_SPEED = BUILDER
             .comment("ME Extend Import/Export Bus speed multiplier")
             .defineInRange("exBusMultiplier", 8, 2, 128);
-
     private static final ForgeConfigSpec.DoubleValue INFINITY_CELL_ENERGY = BUILDER
             .comment("ME Infinity Cell idle energy cost (unit: AE/t)")
             .defineInRange("cost", 8.0, 0.1, 64.0);
-
     private static final ForgeConfigSpec.DoubleValue WIRELESS_CONNECTOR_RANGE = BUILDER
             .comment("The max range between two wireless connector")
             .defineInRange("range", 1000.0, 10.0, 10000.0);
-
     private static final ForgeConfigSpec.DoubleValue WIRELESS_CONNECTOR_POWER_MULTIPLIER = BUILDER
             .comment("Power usage multiplier for wireless connectors")
             .defineInRange("device.wireless_connector_power_multiplier", 1.0, 0.0, 100.0);
-
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> INFINITY_CELL_TYPES = BUILDER
             .comment("ME Infinity Cell types (item or fluid's id)")
             .defineList("types", Lists.newArrayList("minecraft:water", "minecraft:cobblestone"), EPPConfig::checkRL);
-
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> PACKABLE_AE_DEVICE = BUILDER
             .comment("The AE device/part that can be packed by ME Packing Tape")
             .defineList("whitelist", Lists.newArrayList(
@@ -60,30 +55,21 @@ public class EPPConfig {
                     "ae2:pattern_provider",
                     "ae2:drive"
             ), o -> true);
-
     private static final ForgeConfigSpec.BooleanValue INSCRIBER_RENDER = BUILDER
             .comment("Disable Extended Inscriber's item render, it only works in client side.")
             .define("disableItemRender", false);
-
     private static final ForgeConfigSpec.IntValue OVERSIZE_MULTIPLIER = BUILDER
             .comment("Size multiplier of oversize interface")
             .defineInRange("device.oversize_interface_multiplier", 16, 2, 4096);
-
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> CUSTOM_OVERSIZE_MULTIPLIER = BUILDER
             .comment("Set multiplier for specific AEKeyType in oversize interface")
-            .defineList("device.custom_oversize_interface_multiplier", Lists.newArrayList(
-                    "appbot:mana 2",
-                    "appflux:flux 4"
-            ), o -> true);
-
+            .defineList("device.custom_oversize_interface_multiplier", Lists.newArrayList("appbot:mana 2", "appflux:flux 4"), o -> true);
     private static final ForgeConfigSpec.IntValue ASSEMBLER_MATRIX_SIZE = BUILDER
             .comment("The max size of Assembler Matrix")
             .defineInRange("device.assembler_matrix_max_size", 6, 3, 16);
-
     private static final ForgeConfigSpec.BooleanValue DEBUG_MODE = BUILDER
             .comment("Enable debug logging.")
             .define("misc.debug_mode", false);
-
     private static final ForgeConfigSpec.IntValue MAX_WIRELESS_QUENE = BUILDER
             .comment("The max queue size for the ME Wireless Advanced Setup Kit")
             .defineInRange("device.max_queue_size", 10, 10, 100);
@@ -91,7 +77,11 @@ public class EPPConfig {
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
     private static boolean checkRL(Object o) {
-        return o instanceof String s && (FCUtil.checkInvalidRL(s, ForgeRegistries.ITEMS) || FCUtil.checkInvalidRL(s, ForgeRegistries.FLUIDS));
+        if (!(o instanceof String)) {
+            return false;
+        }
+        String s = (String) o;
+        return FCUtil.checkInvalidRL(s, ForgeRegistries.ITEMS) || FCUtil.checkInvalidRL(s, ForgeRegistries.FLUIDS);
     }
 
     public static int busSpeed;
@@ -118,21 +108,20 @@ public class EPPConfig {
         infCellCost = INFINITY_CELL_ENERGY.get();
         wirelessMaxRange = WIRELESS_CONNECTOR_RANGE.get();
         wirelessPowerMultiplier = WIRELESS_CONNECTOR_POWER_MULTIPLIER.get();
-        infCellFluid = new ArrayList<>();
-        infCellItem = new ArrayList<>();
-        INFINITY_CELL_TYPES.get()
-                .forEach(s -> {
-                    if (FCUtil.checkInvalidRL(s, ForgeRegistries.ITEMS)) {
-                        infCellItem.add(ForgeRegistries.ITEMS.getValue(new ResourceLocation(s)));
-                    }
-                    if (FCUtil.checkInvalidRL(s, ForgeRegistries.FLUIDS)) {
-                        infCellFluid.add(ForgeRegistries.FLUIDS.getValue(new ResourceLocation(s)));
-                    }
-                });
+        infCellFluid = new ArrayList<Fluid>();
+        infCellItem = new ArrayList<Item>();
+        INFINITY_CELL_TYPES.get().forEach(s -> {
+            if (FCUtil.checkInvalidRL(s, ForgeRegistries.ITEMS)) {
+                infCellItem.add(ForgeRegistries.ITEMS.getValue(new ResourceLocation(s)));
+            }
+            if (FCUtil.checkInvalidRL(s, ForgeRegistries.FLUIDS)) {
+                infCellFluid.add(ForgeRegistries.FLUIDS.getValue(new ResourceLocation(s)));
+            }
+        });
         tapeWhitelist = PACKABLE_AE_DEVICE.get().stream().map(ResourceLocation::new).collect(Collectors.toSet());
         disableInscriberRender = INSCRIBER_RENDER.get();
         oversizeMultiplier = OVERSIZE_MULTIPLIER.get();
-        customOversizeMultiplier = new Object2IntOpenHashMap<>();
+        customOversizeMultiplier = new Object2IntOpenHashMap<ResourceLocation>();
         CUSTOM_OVERSIZE_MULTIPLIER.get().stream()
                 .map(EPPConfig::parseOversizeMultiplier)
                 .filter(Objects::nonNull)
@@ -144,11 +133,10 @@ public class EPPConfig {
 
     private static Pair<ResourceLocation, Integer> parseOversizeMultiplier(String s) {
         try {
-            var pair = s.split(" ");
+            String[] pair = s.split(" ");
             return Pair.of(new ResourceLocation(pair[0]), Integer.decode(pair[1]));
         } catch (Throwable t) {
             return null;
         }
     }
-
 }

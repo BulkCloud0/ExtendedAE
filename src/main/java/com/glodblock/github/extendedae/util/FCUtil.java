@@ -4,6 +4,7 @@ import appeng.api.inventories.InternalInventory;
 import appeng.blockentity.AEBaseBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -14,27 +15,28 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.registries.IForgeRegistry;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
 public class FCUtil {
 
     public static void replaceTile(Level world, BlockPos pos, BlockEntity oldTile, BlockEntity newTile, BlockState newBlock) {
-        var contents = oldTile.serializeNBT();
+        CompoundTag contents = oldTile.serializeNBT();
         world.removeBlockEntity(pos);
         world.removeBlock(pos, false);
         world.setBlock(pos, newBlock, 3);
         world.setBlockEntity(newTile);
         newTile.deserializeNBT(contents);
-        if (newTile instanceof AEBaseBlockEntity aeTile) {
-            aeTile.markForUpdate();
+        if (newTile instanceof AEBaseBlockEntity) {
+            ((AEBaseBlockEntity) newTile).markForUpdate();
         } else {
             newTile.setChanged();
         }
     }
 
     public static Component getItemDisplayName(ItemLike item) {
-        var itemStack = new ItemStack(item);
+        ItemStack itemStack = new ItemStack(item);
         return itemStack.getHoverName();
     }
 
@@ -47,8 +49,8 @@ public class FCUtil {
     }
 
     public static String[] trimSplit(String str) {
-        var sp = str.split(",");
-        for (int i = 0; i < sp.length; i ++) {
+        String[] sp = str.split(",");
+        for (int i = 0; i < sp.length; i++) {
             sp[i] = sp[i].trim();
         }
         return sp;
@@ -59,22 +61,34 @@ public class FCUtil {
     }
 
     public static int speedCardMap(int card, int multi) {
-        return multi * switch (card) {
-            case 1 -> 3;
-            case 2 -> 5;
-            case 3 -> 10;
-            case 4 -> 50;
-            default -> 2;
-        };
+        int factor;
+        switch (card) {
+            case 1:
+                factor = 3;
+                break;
+            case 2:
+                factor = 5;
+                break;
+            case 3:
+                factor = 10;
+                break;
+            case 4:
+                factor = 50;
+                break;
+            default:
+                factor = 2;
+                break;
+        }
+        return multi * factor;
     }
 
     public static boolean ejectInv(Level world, BlockPos pos, InternalInventory inv, Predicate<? super BlockEntity> shouldIgnore) {
-        for (var dir : Direction.values()) {
-            var te = world.getBlockEntity(pos.relative(dir));
+        for (Direction dir : Direction.values()) {
+            BlockEntity te = world.getBlockEntity(pos.relative(dir));
             if (te == null || shouldIgnore.test(te)) {
                 continue;
             }
-            var target = InternalInventory.wrapExternal(world, pos.relative(dir), dir.getOpposite());
+            InternalInventory target = InternalInventory.wrapExternal(world, pos.relative(dir), dir.getOpposite());
             if (target != null) {
                 int startItems = inv.getStackInSlot(0).getCount();
                 inv.insertItem(0, target.addItems(inv.extractItem(0, 64, false)), false);
@@ -88,13 +102,13 @@ public class FCUtil {
     }
 
     public static List<String> tokenize(String text) {
-        if (text.isBlank()) {
-            return List.of();
+        if (text == null || text.trim().isEmpty()) {
+            return Collections.emptyList();
         }
         text = text.trim().toLowerCase();
-        List<String> tokens = new ArrayList<>();
-        for (var token : text.split(" ")) {
-            if (!token.isBlank()) {
+        List<String> tokens = new ArrayList<String>();
+        for (String token : text.split(" ")) {
+            if (!token.trim().isEmpty()) {
                 tokens.add(token.trim());
             }
         }
@@ -104,10 +118,11 @@ public class FCUtil {
     public static boolean compareTokens(List<String> filter, List<String> target) {
         int p = 0;
         while (p <= target.size() - filter.size()) {
-            int q = p, f = 0;
+            int q = p;
+            int f = 0;
             while (q < target.size() && f < filter.size()) {
-                var tt = target.get(q);
-                var ft = filter.get(f);
+                String tt = target.get(q);
+                String ft = filter.get(f);
                 if (tt.contains(ft)) {
                     q++;
                     f++;
@@ -117,19 +132,17 @@ public class FCUtil {
             }
             if (f >= filter.size()) {
                 return true;
-            } else {
-                p++;
             }
+            p++;
         }
         return false;
     }
 
     public static void addDrops(InternalInventory inv, List<ItemStack> drops) {
-        for (var drop : inv) {
+        for (ItemStack drop : inv) {
             if (!drop.isEmpty()) {
                 drops.add(drop);
             }
         }
     }
-
 }
