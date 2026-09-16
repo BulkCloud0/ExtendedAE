@@ -10,9 +10,7 @@ import com.glodblock.github.extendedae.config.EPPConfig;
 import com.glodblock.github.extendedae.container.ContainerExCraftingTerminal;
 import com.glodblock.github.extendedae.network.EPPNetworkHandler;
 import com.glodblock.github.extendedae.xmod.LoadList;
-import com.mojang.logging.LogUtils;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TagsUpdatedEvent;
@@ -23,39 +21,49 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.RegisterEvent;
-import org.slf4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
- * ExtendedAE bootstrap used by ExpansionAE.
+ * Embedded ExtendedAE bootstrap used by ExpansionAE.
  *
- * This class intentionally is not annotated with @Mod. ExpansionAE is the sole
- * Forge mod container and invokes this bootstrap so the original ExtendedAE
- * registries and mechanics remain available in the unified jar.
+ * This class is intentionally not annotated with @Mod. ExpansionAE owns the
+ * single Forge mod container and invokes this bootstrap so all original
+ * ExtendedAE mechanics live inside the unified jar.
  */
 public class ExtendedAE {
 
     public static final String MODID = "expatternprovider";
-    public static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LogManager.getLogger("ExpansionAE/ExtendedAE");
     public static ExtendedAE INSTANCE;
 
+    public static ExtendedAE bootstrap() {
+        if (INSTANCE == null) {
+            new ExtendedAE();
+        }
+        return INSTANCE;
+    }
+
     public ExtendedAE() {
-        assert INSTANCE == null;
+        if (INSTANCE != null) {
+            throw new IllegalStateException("ExtendedAE is already embedded");
+        }
         INSTANCE = this;
         LoadList.init();
+
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, EPPConfig.SPEC);
         EPPItemAndBlock.init(EAERegistryHandler.INSTANCE);
         bus.register(EAERegistryHandler.INSTANCE);
+
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> bus.register(ClientRegistryHandler.INSTANCE));
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> ClientRegistryHandler.INSTANCE::registerAEHotkey);
         bus.addListener(this::commonSetup);
         bus.addListener(this::clientSetup);
-        bus.addListener((RegisterEvent e) -> {
-            if (e.getRegistryKey() == Registries.CREATIVE_MODE_TAB) {
-                EAERegistryHandler.INSTANCE.registerTab(e.getVanillaRegistry());
-            }
-        });
+
+        // CreativeModeTab is not a Forge registry in 1.16.5. The backport
+        // exposes the tab through the legacy ItemGroup path instead of the
+        // 1.20 RegisterEvent/Registries.CREATIVE_MODE_TAB flow.
         MinecraftForge.EVENT_BUS.register(CutterHook.INSTANCE);
         MinecraftForge.EVENT_BUS.addListener(this::onTagUpdate);
     }
