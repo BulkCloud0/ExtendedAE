@@ -30,6 +30,7 @@ import appeng.util.inv.AppEngInternalInventory;
 import com.glodblock.github.extendedae.api.CanerMode;
 import com.glodblock.github.extendedae.common.EPPItemAndBlock;
 import com.glodblock.github.glodium.util.GlodUtil;
+import lombok.var;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -46,6 +47,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -65,7 +67,6 @@ public class TileCaner extends AENetworkPowerBlockEntity implements IGridTickabl
     public TileCaner(BlockPos pos, BlockState blockState) {
         super(GlodUtil.getTileType(TileCaner.class, TileCaner::new, EPPItemAndBlock.CANER), pos, blockState);
         this.stuff.useRegisteredCapacities();
-        // don't let container item go into it
         this.stuff.setCapacity(AEKeyType.items(), 0);
         this.getMainNode()
                 .setFlags()
@@ -342,7 +343,7 @@ public class TileCaner extends AENetworkPowerBlockEntity implements IGridTickabl
     @Override
     public PatternContainerGroup getCraftingMachineInfo() {
         Component name = this.hasCustomName() ? this.getCustomName() : EPPItemAndBlock.CANER.asItem().getDescription();
-        return new PatternContainerGroup(AEItemKey.of(EPPItemAndBlock.CANER), name, List.of());
+        return new PatternContainerGroup(AEItemKey.of(EPPItemAndBlock.CANER), name, Collections.emptyList());
     }
 
     @Override
@@ -359,22 +360,18 @@ public class TileCaner extends AENetworkPowerBlockEntity implements IGridTickabl
                                 obj = inputs[1].getFirstEntry();
                                 cnt = inputs[0].getFirstEntry();
                             }
-                            // sanity check
                             if (!(cnt.getKey() instanceof AEItemKey) || cnt.getLongValue() != 1) {
                                 return false;
                             }
                             if (!(rst.what() instanceof AEItemKey) || rst.amount() != 1) {
                                 return false;
                             }
-                            // try to fill
                             this.stuff.setStack(0, new GenericStack(obj.getKey(), obj.getLongValue()));
                             this.container.setItemDirect(0, ((AEItemKey) cnt.getKey()).toStack());
-                            // check success
                             boolean fail = this.stuff.getStack(0) == null || this.stuff.getStack(0).amount() != obj.getLongValue();
                             if (this.container.getStackInSlot(0).isEmpty()) {
                                 fail = true;
                             }
-                            // roll back
                             if (fail) {
                                 this.stuff.setStack(0, null);
                                 this.container.setItemDirect(0, ItemStack.EMPTY);
@@ -396,18 +393,14 @@ public class TileCaner extends AENetworkPowerBlockEntity implements IGridTickabl
                                 obj = patternDetails.getOutputs()[1];
                                 rst = patternDetails.getOutputs()[0];
                             }
-                            // sanity check
                             if (!(cnt.getKey() instanceof AEItemKey) || cnt.getLongValue() != 1) {
                                 return false;
                             }
                             if (!(rst.what() instanceof AEItemKey) || rst.amount() != 1) {
                                 return false;
                             }
-                            // try to fill
                             this.container.setItemDirect(0, ((AEItemKey) cnt.getKey()).toStack());
-                            // check success
                             boolean fail = this.container.getStackInSlot(0).isEmpty() || obj == null;
-                            // roll back
                             if (!fail) {
                                 this.target = ((AEItemKey) rst.what()).toStack();
                                 this.emptyKey = obj.what();
