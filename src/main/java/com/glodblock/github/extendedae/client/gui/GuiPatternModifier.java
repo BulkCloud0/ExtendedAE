@@ -147,12 +147,16 @@ public class GuiPatternModifier extends AEBaseScreen<ContainerPatternModifier> {
     }
 
     private Component getModeName() {
-        return switch (this.menu.page) {
-            case 0 -> Component.translatable("gui.expatternprovider.pattern_modifier.multiply");
-            case 1 -> Component.translatable("gui.expatternprovider.pattern_modifier.replace");
-            case 2 -> Component.translatable("gui.expatternprovider.pattern_modifier.clone");
-            default -> Component.empty();
-        };
+        switch (this.menu.page) {
+            case 0:
+                return Component.translatable("gui.expatternprovider.pattern_modifier.multiply");
+            case 1:
+                return Component.translatable("gui.expatternprovider.pattern_modifier.replace");
+            case 2:
+                return Component.translatable("gui.expatternprovider.pattern_modifier.clone");
+            default:
+                return Component.empty();
+        }
     }
 
 }
