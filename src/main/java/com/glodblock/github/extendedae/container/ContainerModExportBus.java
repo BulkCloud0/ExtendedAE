@@ -30,7 +30,8 @@ public class ContainerModExportBus extends UpgradeableMenu<PartModExportBus> imp
         super(TYPE, id, ip, host);
         this.actions.put("set", o -> this.setExp(o.get(0)));
         this.actions.put("update", o -> {
-            if (this.getPlayer() instanceof ServerPlayer sp) {
+            if (this.getPlayer() instanceof ServerPlayer) {
+                ServerPlayer sp = (ServerPlayer) this.getPlayer();
                 EPPNetworkHandler.INSTANCE.sendTo(new SGenericPacket("init", this.exp), sp);
             }
         });
