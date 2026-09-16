@@ -17,6 +17,7 @@ import com.glodblock.github.extendedae.util.helper.IntruderInventory;
 import com.glodblock.github.extendedae.util.SingleThreadLRU;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.var;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +60,6 @@ public class CraftingMatrixThread extends CraftingThread {
                     this.pusher.accept(AEItemKey.of(stack), (long) stack.getCount());
                 }
                 changed = true;
-                // The buffer can hold anything
                 this.gridInv.setItemDirect(x, ItemStack.EMPTY);
             }
         }
@@ -70,7 +70,8 @@ public class CraftingMatrixThread extends CraftingThread {
 
     @Override
     protected TickRateModulation onCraftingDone() {
-        if (this.myPlan instanceof AECraftingPattern cp) {
+        if (this.myPlan instanceof AECraftingPattern) {
+            AECraftingPattern cp = (AECraftingPattern) this.myPlan;
             if (cp.canSubstitute) {
                 return super.onCraftingDone();
             } else {
@@ -95,7 +96,8 @@ public class CraftingMatrixThread extends CraftingThread {
 
     @Override
     protected ItemStack assemblePattern(CraftingContainer input) {
-        if (this.myPlan instanceof AECraftingPattern crafting) {
+        if (this.myPlan instanceof AECraftingPattern) {
+            AECraftingPattern crafting = (AECraftingPattern) this.myPlan;
             var recipe = Ae2Reflect.getCraftRecipe(crafting);
             if (crafting.canSubstitute && recipe.isSpecial()) {
                 return super.assemblePattern(input);
@@ -119,7 +121,8 @@ public class CraftingMatrixThread extends CraftingThread {
 
     @Override
     public void fillGrid(KeyCounter[] table, IMolecularAssemblerSupportedPattern adapter) {
-        if (adapter instanceof AECraftingPattern cp) {
+        if (adapter instanceof AECraftingPattern) {
+            AECraftingPattern cp = (AECraftingPattern) adapter;
             if (cp.canSubstitute) {
                 super.fillGrid(table, cp);
             } else {
@@ -129,7 +132,6 @@ public class CraftingMatrixThread extends CraftingThread {
                     return;
                 }
                 if (cache != null) {
-                    // Force to fail
                     super.fillGrid(table, cp);
                     return;
                 }
@@ -141,7 +143,6 @@ public class CraftingMatrixThread extends CraftingThread {
     }
 
     private SearchResult makeResult(KeyCounter[] table, AECraftingPattern pattern) {
-        // Make the cache
         super.fillGrid(table, pattern);
         ItemStack[] inputClone = new ItemStack[9];
         for (int i = 0; i < 9; i++) {
@@ -178,14 +179,25 @@ public class CraftingMatrixThread extends CraftingThread {
         ((IntruderInventory) this.gridInv).setStacks(result.results);
     }
 
-    private record SearchResult(ItemStack[] results, List<GenericStack> remains, ItemStack output, AEItemKey outputKey, int amount) {
+    private static final class SearchResult {
+        static final SearchResult NULL = new SearchResult(null, null, null, null, 0);
 
-        static SearchResult NULL = new SearchResult(null, null, null, null, 0);
+        final ItemStack[] results;
+        final List<GenericStack> remains;
+        final ItemStack output;
+        final AEItemKey outputKey;
+        final int amount;
+
+        SearchResult(ItemStack[] results, List<GenericStack> remains, ItemStack output, AEItemKey outputKey, int amount) {
+            this.results = results;
+            this.remains = remains;
+            this.output = output;
+            this.outputKey = outputKey;
+            this.amount = amount;
+        }
 
         boolean isValid() {
             return this != NULL && this.results != null;
         }
-
     }
-
 }
