@@ -6,6 +6,7 @@ import appeng.core.localization.ButtonToolTips;
 import appeng.core.localization.Tooltips;
 import appeng.items.misc.WrappedGenericStack;
 import com.glodblock.github.extendedae.container.pattern.ContainerPattern;
+import lombok.var;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -29,25 +30,27 @@ public abstract class GuiPattern<T extends ContainerPattern> extends AbstractCon
 
     @Override
     protected void renderTooltip(@NotNull GuiGraphics guiGraphics, int x, int y) {
-        if (this.hoveredSlot instanceof ContainerPattern.DisplayOnlySlot dpSlot && !dpSlot.getItem().isEmpty()) {
-            var stack = dpSlot.getItem();
-            var item = dpSlot.getItem().getItem();
-            var key = item instanceof WrappedGenericStack wgs
-                    ? wgs.unwrapWhat(stack) : AEItemKey.of(stack);
-            var amount = item instanceof WrappedGenericStack wgs
-                    ? wgs.unwrapAmount(stack) : dpSlot.getActualAmount();
-            if (key != null && amount > 0) {
-                var currentToolTip = AEKeyRendering.getTooltip(key);
-                if (Tooltips.shouldShowAmountTooltip(key, amount)) {
-                    currentToolTip.add(Tooltips.getAmountTooltip(ButtonToolTips.StoredAmount, key, amount));
+        if (this.hoveredSlot instanceof ContainerPattern.DisplayOnlySlot) {
+            ContainerPattern.DisplayOnlySlot dpSlot = (ContainerPattern.DisplayOnlySlot) this.hoveredSlot;
+            if (!dpSlot.getItem().isEmpty()) {
+                var stack = dpSlot.getItem();
+                var item = stack.getItem();
+                WrappedGenericStack wrapped = item instanceof WrappedGenericStack ? (WrappedGenericStack) item : null;
+                var key = wrapped != null ? wrapped.unwrapWhat(stack) : AEItemKey.of(stack);
+                var amount = wrapped != null ? wrapped.unwrapAmount(stack) : dpSlot.getActualAmount();
+                if (key != null && amount > 0) {
+                    var currentToolTip = AEKeyRendering.getTooltip(key);
+                    if (Tooltips.shouldShowAmountTooltip(key, amount)) {
+                        currentToolTip.add(Tooltips.getAmountTooltip(ButtonToolTips.StoredAmount, key, amount));
+                    }
+                    if (key instanceof AEItemKey) {
+                        guiGraphics.renderTooltip(this.font, currentToolTip, stack.getTooltipImage(), stack, x, y);
+                    } else {
+                        guiGraphics.renderComponentTooltip(this.font, currentToolTip, x, y);
+                    }
                 }
-                if (key instanceof AEItemKey) {
-                    guiGraphics.renderTooltip(this.font, currentToolTip, stack.getTooltipImage(), stack, x, y);
-                } else {
-                    guiGraphics.renderComponentTooltip(this.font, currentToolTip, x, y);
-                }
+                return;
             }
-            return;
         }
         super.renderTooltip(guiGraphics, x, y);
     }
