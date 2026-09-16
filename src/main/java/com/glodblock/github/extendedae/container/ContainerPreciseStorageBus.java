@@ -18,6 +18,7 @@ import com.glodblock.github.glodium.network.packet.SGenericPacket;
 import com.glodblock.github.glodium.network.packet.sync.IActionHolder;
 import com.glodblock.github.glodium.network.packet.sync.Paras;
 import com.google.common.collect.Iterators;
+import lombok.var;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -67,7 +68,8 @@ public class ContainerPreciseStorageBus extends UpgradeableMenu<PartPreciseStora
 
         this.actions.put("set", o -> this.setMode(o.get(0)));
         this.actions.put("update", o -> {
-            if (this.getPlayer() instanceof ServerPlayer sp) {
+            if (this.getPlayer() instanceof ServerPlayer) {
+                ServerPlayer sp = (ServerPlayer) this.getPlayer();
                 EPPNetworkHandler.INSTANCE.sendTo(new SGenericPacket("init", this.storageMode.ordinal()), sp);
             }
         });
@@ -118,7 +120,7 @@ public class ContainerPreciseStorageBus extends UpgradeableMenu<PartPreciseStora
         var inv = getHost().getConfig();
         var cellInv = getHost().getInternalHandler();
 
-        Iterator<GenericStack> i = Collections.emptyIterator();
+        Iterator<GenericStack> i = Collections.<GenericStack>emptyList().iterator();
         if (cellInv != null) {
             i = Iterators.transform(cellInv.getAvailableStacks().iterator(), e -> new GenericStack(e.getKey(), e.getLongValue()));
         }
