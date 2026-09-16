@@ -8,7 +8,6 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 
 import java.util.Collections;
-import java.util.List;
 
 public class ModPriorityList implements IPartitionList {
 
@@ -30,6 +29,6 @@ public class ModPriorityList implements IPartitionList {
 
     @Override
     public Iterable<AEKey> getItems() {
-        return List.of();
+        return Collections.emptyList();
     }
 }
