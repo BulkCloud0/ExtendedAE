@@ -48,7 +48,7 @@ public class PartExInterface extends AEBasePart implements InterfaceLogicHost, I
     public static final PartModel MODELS_ON = new PartModel(MODELS.get(0), MODELS.get(1));
     public static final PartModel MODELS_HAS_CHANNEL = new PartModel(MODELS.get(0), MODELS.get(3));
 
-    private static final IGridNodeListener<PartExInterface> NODE_LISTENER = new AEBasePart.NodeListener<>() {
+    private static final IGridNodeListener<PartExInterface> NODE_LISTENER = new AEBasePart.NodeListener<PartExInterface>() {
         @Override
         public void onGridChanged(PartExInterface nodeOwner, IGridNode node) {
             super.onGridChanged(nodeOwner, node);
