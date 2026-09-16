@@ -1,44 +1,34 @@
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
-[[mods]]
-modId="expatternprovider"
 issueTrackerURL="https://github.com/GlodBlock/ExtendedAE/issues"
 displayURL="https://github.com/GlodBlock/ExtendedAE"
+
+[[mods]]
+modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
 authors="${mod_authors}"
-credits="Sea_Kerman for models, gt147532689 for Chinese(simplified) translation, nekitbrush for Russian translation"
+description='''${mod_description}'''
 logoFile="logo.png"
 
-description='''${mod_description}'''
-[[dependencies.expatternprovider]]
-    modId="forge"
-    mandatory=true
-    versionRange="${forge_version_range}"
-    ordering="NONE"
-    side="BOTH"
-[[dependencies.expatternprovider]]
-    modId="minecraft"
-    mandatory=true
-    versionRange="${minecraft_version_range}"
-    ordering="NONE"
-    side="BOTH"
-[[dependencies.expatternprovider]]
-    modId="ae2"
-    mandatory=true
-    versionRange="[15.4.1,)"
-    ordering="AFTER"
-    side="BOTH"
-[[dependencies.expatternprovider]]
-    modId="guideme"
-    mandatory=true
-    versionRange="[20.1.7,20.2.0)"
-    ordering="AFTER"
-    side="BOTH"
-[[dependencies.expatternprovider]]
-    modId="glodium"
-    mandatory=true
-    versionRange="[1.0,)"
-    ordering="AFTER"
-    side="BOTH"
+[[dependencies.${mod_id}]]
+modId="forge"
+mandatory=true
+versionRange="${forge_version_range}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="minecraft"
+mandatory=true
+versionRange="${minecraft_version_range}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="ae2"
+mandatory=true
+versionRange="[8.4.7,9)"
+ordering="AFTER"
+side="BOTH"
