@@ -12,18 +12,14 @@ public final class LoadList {
     public static boolean REI = false;
     public static boolean GT = false;
 
-    public static Set<String> MOD_NAME = ModList.get().getMods().stream().flatMap(x -> Stream.of(x.getModId(), x.getDisplayName())).collect(Collectors.toSet());
+    public static Set<String> MOD_NAME = ModList.get().getMods().stream()
+            .flatMap(x -> Stream.of(x.getModId(), x.getDisplayName()))
+            .collect(Collectors.toSet());
 
     public static void init() {
-        var list = ModList.get();
-        if (list.isLoaded("jei")) {
-            JEI = true;
-        }
-        if (list.isLoaded("roughlyenoughitems")) {
-            REI = true;
-        }
-        if (list.isLoaded("gtceu")) {
-            GT = true;
-        }
+        ModList list = ModList.get();
+        JEI = list.isLoaded("jei");
+        REI = list.isLoaded("roughlyenoughitems");
+        GT = list.isLoaded("gtceu");
     }
 }
