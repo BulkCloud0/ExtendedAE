@@ -7,6 +7,7 @@ import appeng.api.storage.AEKeyFilter;
 import appeng.helpers.externalstorage.GenericStackInv;
 import appeng.util.ConfigInventory;
 import com.glodblock.github.extendedae.config.EPPConfig;
+import lombok.var;
 import org.jetbrains.annotations.Nullable;
 
 public class OversizeConfigInv extends ConfigInventory {
@@ -35,12 +36,13 @@ public class OversizeConfigInv extends ConfigInventory {
 
     @Override
     public long getMaxAmount(AEKey key) {
-        if (this.allowOverstacking)
+        if (this.allowOverstacking) {
             return this.getCapacity(key.getType());
-        if (key instanceof AEItemKey itemKey) {
+        }
+        if (key instanceof AEItemKey) {
+            AEItemKey itemKey = (AEItemKey) key;
             return Math.min((long) itemKey.getMaxStackSize() * EPPConfig.getOversizeMultiplier(itemKey.getType()), getCapacity(key.getType()));
         }
         return this.getCapacity(key.getType());
     }
-
 }
