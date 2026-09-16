@@ -47,16 +47,23 @@ public class MachineResult<T extends Recipe<?>> implements FinishedRecipe {
         return null;
     }
 
-    public record Type<T extends Recipe<?>>(MachineRecipe<T> machine) {
+    public static final class Type<T extends Recipe<?>> {
+        private final MachineRecipe<T> machine;
+
+        public Type(MachineRecipe<T> machine) {
+            this.machine = machine;
+        }
+
+        public MachineRecipe<T> machine() {
+            return this.machine;
+        }
 
         public static <T extends Recipe<?>> Type<T> type(MachineRecipe<T> machine) {
-            return new Type<>(machine);
+            return new Type<T>(machine);
         }
 
         public MachineResult<T> result(ResourceLocation id, T recipe) {
-            return new MachineResult<>(this.machine, recipe, id);
+            return new MachineResult<T>(this.machine, recipe, id);
         }
-
     }
-
 }

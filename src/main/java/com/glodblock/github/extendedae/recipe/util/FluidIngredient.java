@@ -2,6 +2,7 @@ package com.glodblock.github.extendedae.recipe.util;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
@@ -17,7 +18,7 @@ import java.util.function.Predicate;
 @SuppressWarnings("deprecation")
 public class FluidIngredient implements Predicate<FluidStack> {
 
-    private final List<Fluid> fluids = new ArrayList<>();
+    private final List<Fluid> fluids = new ArrayList<Fluid>();
     protected final Value value;
 
     public List<Fluid> getFluid() {
@@ -25,24 +26,23 @@ public class FluidIngredient implements Predicate<FluidStack> {
     }
 
     public static FluidIngredient of(FriendlyByteBuf buff) {
-        var type = buff.readByte();
+        byte type = buff.readByte();
         if (type == 0) {
             return new FluidIngredient(new FluidValue(buff.readFluidStack()));
         } else if (type == 1) {
             return new FluidIngredient(new TagValue(TagKey.create(Registries.FLUID, buff.readResourceLocation())));
-        } else {
-            throw new IllegalArgumentException();
         }
+        throw new IllegalArgumentException("Unknown fluid ingredient type: " + type);
     }
 
     public static FluidIngredient of(JsonElement json) {
         if (json != null && json.isJsonObject()) {
-            var obj = (JsonObject) json;
+            JsonObject obj = (JsonObject) json;
             if (obj.has("fluid")) {
-                var fluid = BuiltInRegistries.FLUID.get(new ResourceLocation(obj.get("fluid").getAsString()));
+                Fluid fluid = BuiltInRegistries.FLUID.get(new ResourceLocation(obj.get("fluid").getAsString()));
                 return new FluidIngredient(new FluidValue(new FluidStack(fluid, 1000)));
             } else if (obj.has("tag")) {
-                var tag = new ResourceLocation(obj.get("tag").getAsString());
+                ResourceLocation tag = new ResourceLocation(obj.get("tag").getAsString());
                 return new FluidIngredient(new TagValue(TagKey.create(Registries.FLUID, tag)));
             }
         }
@@ -58,22 +58,26 @@ public class FluidIngredient implements Predicate<FluidStack> {
     }
 
     public JsonElement toJson() {
-        var json = new JsonObject();
-        if (this.value instanceof FluidValue f) {
-            json.addProperty("fluid", BuiltInRegistries.FLUID.getKey(f.fluid.getFluid()).toString());
-        } else if (this.value instanceof TagValue f) {
-            json.addProperty("tag", f.fluid.location().toString());
+        JsonObject json = new JsonObject();
+        if (this.value instanceof FluidValue) {
+            FluidValue value = (FluidValue) this.value;
+            json.addProperty("fluid", BuiltInRegistries.FLUID.getKey(value.fluid().getFluid()).toString());
+        } else if (this.value instanceof TagValue) {
+            TagValue value = (TagValue) this.value;
+            json.addProperty("tag", value.fluid().location().toString());
         }
         return json;
     }
 
     public void to(FriendlyByteBuf buff) {
-        if (this.value instanceof FluidValue f) {
+        if (this.value instanceof FluidValue) {
+            FluidValue value = (FluidValue) this.value;
             buff.writeByte(0);
-            buff.writeFluidStack(f.fluid);
-        } else if (this.value instanceof TagValue f) {
+            buff.writeFluidStack(value.fluid());
+        } else if (this.value instanceof TagValue) {
+            TagValue value = (TagValue) this.value;
             buff.writeByte(1);
-            buff.writeResourceLocation(f.fluid.location());
+            buff.writeResourceLocation(value.fluid().location());
         } else {
             throw new UnsupportedOperationException();
         }
@@ -81,12 +85,14 @@ public class FluidIngredient implements Predicate<FluidStack> {
 
     public FluidIngredient(Value v) {
         this.value = v;
-        if (v instanceof FluidValue fluid) {
-            if (!fluid.fluid.isEmpty()) {
-                this.fluids.add(fluid.fluid.getFluid());
+        if (v instanceof FluidValue) {
+            FluidStack fluid = ((FluidValue) v).fluid();
+            if (!fluid.isEmpty()) {
+                this.fluids.add(fluid.getFluid());
             }
-        } else if (v instanceof TagValue fluid) {
-            for (var holder : BuiltInRegistries.FLUID.getTagOrEmpty(fluid.fluid)) {
+        } else if (v instanceof TagValue) {
+            TagValue tag = (TagValue) v;
+            for (Holder<Fluid> holder : BuiltInRegistries.FLUID.getTagOrEmpty(tag.fluid())) {
                 this.fluids.add(holder.value());
             }
         }
@@ -100,9 +106,9 @@ public class FluidIngredient implements Predicate<FluidStack> {
         if (fluidStack.isEmpty()) {
             return false;
         }
-        var fluid = fluidStack.getFluid();
-        for (var tf : this.fluids) {
-            if (tf.isSame(fluid)) {
+        Fluid fluid = fluidStack.getFluid();
+        for (Fluid taggedFluid : this.fluids) {
+            if (taggedFluid.isSame(fluid)) {
                 return true;
             }
         }
@@ -111,23 +117,38 @@ public class FluidIngredient implements Predicate<FluidStack> {
 
     @Override
     public String toString() {
-        if (this.value instanceof TagValue f) {
-            return "tag: " + f.fluid;
+        if (this.value instanceof TagValue) {
+            return "tag: " + ((TagValue) this.value).fluid();
         }
-        if (this.value instanceof FluidValue f) {
-            return "fluid: " + f.fluid;
+        if (this.value instanceof FluidValue) {
+            return "fluid: " + ((FluidValue) this.value).fluid();
         }
         return super.toString();
     }
 
-    public interface Value {
+    public interface Value {}
 
+    public static final class TagValue implements Value {
+        private final TagKey<Fluid> fluid;
+
+        public TagValue(TagKey<Fluid> fluid) {
+            this.fluid = fluid;
+        }
+
+        public TagKey<Fluid> fluid() {
+            return this.fluid;
+        }
     }
 
-    public record TagValue(TagKey<Fluid> fluid) implements Value {
-    }
+    public static final class FluidValue implements Value {
+        private final FluidStack fluid;
 
-    public record FluidValue(FluidStack fluid) implements Value {
-    }
+        public FluidValue(FluidStack fluid) {
+            this.fluid = fluid;
+        }
 
+        public FluidStack fluid() {
+            return this.fluid;
+        }
+    }
 }

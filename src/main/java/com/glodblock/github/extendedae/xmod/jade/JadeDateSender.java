@@ -15,8 +15,9 @@ public class JadeDateSender implements IServerDataProvider<BlockAccessor> {
     public void appendServerData(CompoundTag data, BlockAccessor accessor) {
         CompoundTag jade = new CompoundTag();
         BlockEntity tile = accessor.getBlockEntity();
-        if (tile instanceof JadeDataProvider provider) {
-            var holder = new CompoundTag();
+        if (tile instanceof JadeDataProvider) {
+            JadeDataProvider provider = (JadeDataProvider) tile;
+            CompoundTag holder = new CompoundTag();
             provider.collectJadeInfo(holder);
             jade.put(provider.jadeID(), holder);
         }
@@ -29,5 +30,4 @@ public class JadeDateSender implements IServerDataProvider<BlockAccessor> {
     public ResourceLocation getUid() {
         return ExtendedAE.id("tile_data");
     }
-
 }
