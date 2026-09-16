@@ -21,9 +21,10 @@ public class InfinityCellInventory implements StorageCell {
     public static final ICellHandler HANDLER = new Handler();
 
     public InfinityCellInventory(ItemStack stack) {
-        if (!(stack.getItem() instanceof InfinityCell cell)) {
+        if (!(stack.getItem() instanceof InfinityCell)) {
             throw new IllegalArgumentException("Cell isn't an infinity cell!");
         }
+        InfinityCell cell = (InfinityCell) stack.getItem();
         this.stack = stack;
         this.record = cell.getRecord(stack);
     }
@@ -86,5 +87,4 @@ public class InfinityCellInventory implements StorageCell {
             return isCell(is) ? new InfinityCellInventory(is) : null;
         }
     }
-
 }
