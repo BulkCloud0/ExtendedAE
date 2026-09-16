@@ -8,6 +8,7 @@ import com.glodblock.github.extendedae.common.me.wireless.WirelessStatus;
 import com.glodblock.github.extendedae.common.tileentities.TileWirelessHub;
 import com.glodblock.github.glodium.network.packet.sync.IActionHolder;
 import com.glodblock.github.glodium.network.packet.sync.Paras;
+import lombok.var;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -87,11 +88,16 @@ public class ContainerWirelessHub extends UpgradeableMenu<TileWirelessHub> imple
     }
 
     @SuppressWarnings("unused")
-    public record PortStatus(Status[] statuses) implements PacketWritable {
+    public static final class PortStatus implements PacketWritable {
+        private final Status[] statuses;
 
         public PortStatus() {
             this(new Status[TileWirelessHub.MAX_PORT]);
             Arrays.fill(this.statuses, new Status(0, WirelessStatus.UNCONNECTED));
+        }
+
+        public PortStatus(Status[] statuses) {
+            this.statuses = statuses;
         }
 
         public PortStatus(FriendlyByteBuf data) {
@@ -99,6 +105,10 @@ public class ContainerWirelessHub extends UpgradeableMenu<TileWirelessHub> imple
             for (int i = 0; i < TileWirelessHub.MAX_PORT; i ++) {
                 this.statuses[i] = Status.readFromPacket(data);
             }
+        }
+
+        public Status[] statuses() {
+            return this.statuses;
         }
 
         private Status getStatus(int port) {
@@ -126,13 +136,29 @@ public class ContainerWirelessHub extends UpgradeableMenu<TileWirelessHub> imple
             if (o == this) {
                 return true;
             }
-            if (o instanceof PortStatus.Status[] that) {
-                return Arrays.equals(this.statuses, that);
+            if (o instanceof PortStatus) {
+                PortStatus that = (PortStatus) o;
+                return Arrays.equals(this.statuses, that.statuses);
             }
             return false;
         }
 
-        private record Status(long pos, WirelessStatus status) implements PacketWritable {
+        private static final class Status implements PacketWritable {
+            private final long pos;
+            private final WirelessStatus status;
+
+            private Status(long pos, WirelessStatus status) {
+                this.pos = pos;
+                this.status = status;
+            }
+
+            long pos() {
+                return this.pos;
+            }
+
+            WirelessStatus status() {
+                return this.status;
+            }
 
             static Status readFromPacket(FriendlyByteBuf data) {
                 return new Status(data.readLong(), data.readEnum(WirelessStatus.class));
@@ -144,7 +170,24 @@ public class ContainerWirelessHub extends UpgradeableMenu<TileWirelessHub> imple
                 data.writeEnum(this.status);
             }
 
-        }
+            @Override
+            public int hashCode() {
+                int result = Long.hashCode(this.pos);
+                result = 31 * result + this.status.hashCode();
+                return result;
+            }
 
+            @Override
+            public boolean equals(Object o) {
+                if (o == this) {
+                    return true;
+                }
+                if (o instanceof Status) {
+                    Status that = (Status) o;
+                    return this.pos == that.pos && this.status == that.status;
+                }
+                return false;
+            }
+        }
     }
 }
