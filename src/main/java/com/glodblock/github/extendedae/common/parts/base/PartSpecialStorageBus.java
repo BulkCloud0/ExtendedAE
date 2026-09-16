@@ -42,6 +42,7 @@ import appeng.parts.automation.StackWorldBehaviors;
 import appeng.parts.automation.UpgradeablePart;
 import appeng.util.Platform;
 import appeng.util.prioritylist.IPartitionList;
+import lombok.var;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -163,7 +164,6 @@ public abstract class PartSpecialStorageBus extends UpgradeablePart implements I
             var te = level.getBlockEntity(neighbor);
 
             if (te == null) {
-                // In case the TE was destroyed, we have to update the target handler immediately.
                 this.updateTarget(false);
             } else {
                 this.scheduleUpdate();
@@ -205,46 +205,37 @@ public abstract class PartSpecialStorageBus extends UpgradeablePart implements I
 
     protected void updateTarget(boolean forceFullUpdate) {
         if (isClientSide()) {
-            return; // Part is not part of level yet or its client-side
+            return;
         }
 
         MEStorage foundMonitor = null;
         Map<AEKeyType, MEStorage> foundExternalApi = Collections.emptyMap();
 
-        // If the target position is not ticking, don't search for a target.
         if (Platform.areBlockEntitiesTicking(getLevel(), getBlockEntity().getBlockPos().relative(getSide()))) {
-            // In any case we don't need any further update
             this.updateStatus = PendingUpdateStatus.NO_UPDATE;
-
-            // Prioritize a handler to directly link to another ME network
             foundMonitor = adjacentStorageAccessor.find();
 
             if (foundMonitor == null) {
-                // Query all available external APIs
-                // TODO: If a filter is configured, we might want to only query external APIs for compatible key spaces
                 foundExternalApi = new IdentityHashMap<>(2);
                 findExternalStorages(foundExternalApi);
             }
         } else {
-            // Try again in the future...
             this.updateStatus = PendingUpdateStatus.SLOW_UPDATE;
         }
 
-        if (!forceFullUpdate && this.handler.getDelegate() instanceof CompositeStorage compositeStorage
+        if (!forceFullUpdate && this.handler.getDelegate() instanceof CompositeStorage
                 && !foundExternalApi.isEmpty()) {
-            // Just update the inventory reference, the ticking monitor will take care of the rest.
+            CompositeStorage compositeStorage = (CompositeStorage) this.handler.getDelegate();
             compositeStorage.setStorages(foundExternalApi);
             handlerDescription = compositeStorage.getDescription();
             return;
         } else if (!forceFullUpdate && foundMonitor == this.handler.getDelegate()) {
-            // Monitor didn't change, nothing to do!
             return;
         }
 
         var wasSleeping = this.monitor == null;
         var wasRegistered = this.hasRegisteredCellToNetwork();
 
-        // Update inventory
         MEStorage newInventory;
         if (foundMonitor != null) {
             newInventory = foundMonitor;
@@ -259,7 +250,6 @@ public abstract class PartSpecialStorageBus extends UpgradeablePart implements I
         }
         this.handler.setDelegate(newInventory);
 
-        // Apply other settings.
         this.handler.setAccessRestriction(this.getConfigManager().getSetting(Settings.ACCESS));
         this.handler.setWhitelist(isUpgradedWith(AEItems.INVERTER_CARD) ? IncludeExclude.BLACKLIST
                 : IncludeExclude.WHITELIST);
@@ -267,18 +257,15 @@ public abstract class PartSpecialStorageBus extends UpgradeablePart implements I
         this.handler.setPartitionList(createFilter());
         this.handler.setVoidOverflow(this.isUpgradedWith(AEItems.VOID_CARD));
 
-        // Ensure we apply the partition list to the available items.
         boolean filterOnExtract = this.getConfigManager().getSetting(Settings.FILTER_ON_EXTRACT) == YesNo.YES;
         this.handler.setExtractFiltering(filterOnExtract, isExtractableOnly() && filterOnExtract);
 
-        // Let the new inventory react to us ticking.
-        if (newInventory instanceof ITickingMonitor tickingMonitor) {
-            this.monitor = tickingMonitor;
+        if (newInventory instanceof ITickingMonitor) {
+            this.monitor = (ITickingMonitor) newInventory;
         } else {
             this.monitor = null;
         }
 
-        // Update sleeping state.
         if (wasSleeping != (this.monitor == null)) {
             getMainNode().ifPresent((grid, node) -> {
                 var tm = grid.getTickManager();
@@ -323,7 +310,8 @@ public abstract class PartSpecialStorageBus extends UpgradeablePart implements I
         var targetBe = getLevel().getBlockEntity(targetPos);
 
         Object targetHost = targetBe;
-        if (targetBe instanceof IPartHost partHost) {
+        if (targetBe instanceof IPartHost) {
+            IPartHost partHost = (IPartHost) targetBe;
             targetHost = partHost.getPart(oppositeSide);
         }
 
