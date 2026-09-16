@@ -22,6 +22,7 @@ import com.glodblock.github.extendedae.common.inventory.PatternModifierInventory
 import com.glodblock.github.extendedae.util.Ae2Reflect;
 import com.glodblock.github.glodium.network.packet.sync.IActionHolder;
 import com.glodblock.github.glodium.network.packet.sync.Paras;
+import lombok.var;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
@@ -72,7 +73,8 @@ public class ContainerPatternModifier extends AEBaseMenu implements IPage, IActi
 
     public void showPage() {
         for (var slot : this.getSlots(SlotSemantics.ENCODED_PATTERN)) {
-            if (slot instanceof AppEngSlot as) {
+            if (slot instanceof AppEngSlot) {
+                AppEngSlot as = (AppEngSlot) slot;
                 as.setSlotEnabled(this.page == 0 || this.page == 1);
             }
         }
@@ -81,7 +83,8 @@ public class ContainerPatternModifier extends AEBaseMenu implements IPage, IActi
         this.targetSlot.setSlotEnabled(this.page == 2);
         this.cloneSlot.setSlotEnabled(this.page == 2);
         for (var slot : this.getSlots(ExSemantics.EX_3)) {
-            if (slot instanceof AppEngSlot as) {
+            if (slot instanceof AppEngSlot) {
+                AppEngSlot as = (AppEngSlot) slot;
                 as.setSlotEnabled(this.page == 2);
             }
         }
@@ -95,9 +98,11 @@ public class ContainerPatternModifier extends AEBaseMenu implements IPage, IActi
         }
         for (var slot : this.getSlots(SlotSemantics.ENCODED_PATTERN)) {
             var stack = slot.getItem();
-            if (stack.getItem() instanceof EncodedPatternItem pattern) {
+            if (stack.getItem() instanceof EncodedPatternItem) {
+                EncodedPatternItem pattern = (EncodedPatternItem) stack.getItem();
                 var detail = pattern.decode(stack, this.getPlayer().level(), false);
-                if (detail instanceof AEProcessingPattern process) {
+                if (detail instanceof AEProcessingPattern) {
+                    AEProcessingPattern process = (AEProcessingPattern) detail;
                     var input = process.getSparseInputs();
                     var output = process.getOutputs();
                     var replaceInput = new GenericStack[input.length];
@@ -106,7 +111,8 @@ public class ContainerPatternModifier extends AEBaseMenu implements IPage, IActi
                     this.replace(output, replaceOutput, AEItemKey.of(replace), AEItemKey.of(with));
                     var newPattern = PatternDetailsHelper.encodeProcessingPattern(replaceInput, replaceOutput);
                     slot.set(newPattern);
-                } else if (detail instanceof AECraftingPattern craft) {
+                } else if (detail instanceof AECraftingPattern) {
+                    AECraftingPattern craft = (AECraftingPattern) detail;
                     var input = craft.getSparseInputs();
                     var output = craft.getPrimaryOutput();
                     var replaceInput = new GenericStack[input.length];
@@ -145,7 +151,8 @@ public class ContainerPatternModifier extends AEBaseMenu implements IPage, IActi
     public void clonePattern() {
         var target = this.targetSlot.getItem();
         var clone = this.cloneSlot.getItem();
-        if (target.getItem() instanceof EncodedPatternItem pattern) {
+        if (target.getItem() instanceof EncodedPatternItem) {
+            EncodedPatternItem pattern = (EncodedPatternItem) target.getItem();
             var detail = pattern.decode(target, this.getPlayer().level(), false);
             if (detail != null) {
                 var newPattern = target.copy();
@@ -166,9 +173,11 @@ public class ContainerPatternModifier extends AEBaseMenu implements IPage, IActi
         }
         for (var slot : this.getSlots(SlotSemantics.ENCODED_PATTERN)) {
             var stack = slot.getItem();
-            if (stack.getItem() instanceof EncodedPatternItem pattern) {
+            if (stack.getItem() instanceof EncodedPatternItem) {
+                EncodedPatternItem pattern = (EncodedPatternItem) stack.getItem();
                 var detail = pattern.decode(stack, this.getPlayer().level(), false);
-                if (detail instanceof AEProcessingPattern process) {
+                if (detail instanceof AEProcessingPattern) {
+                    AEProcessingPattern process = (AEProcessingPattern) detail;
                     var input = process.getSparseInputs();
                     var output = process.getOutputs();
                     if (checkModify(input, scale, div) && checkModify(output, scale, div)) {
@@ -240,7 +249,8 @@ public class ContainerPatternModifier extends AEBaseMenu implements IPage, IActi
     }
 
     private ItemStack itemize(GenericStack stack) {
-        if (stack != null && stack.what() instanceof AEItemKey what) {
+        if (stack != null && stack.what() instanceof AEItemKey) {
+            AEItemKey what = (AEItemKey) stack.what();
             return what.toStack((int) stack.amount());
         } else {
             return ItemStack.EMPTY;
