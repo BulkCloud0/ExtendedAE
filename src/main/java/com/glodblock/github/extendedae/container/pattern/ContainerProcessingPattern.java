@@ -3,6 +3,7 @@ package com.glodblock.github.extendedae.container.pattern;
 import appeng.api.stacks.GenericStack;
 import appeng.crafting.pattern.AEProcessingPattern;
 import com.glodblock.github.extendedae.ExtendedAE;
+import lombok.var;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
@@ -30,7 +31,8 @@ public class ContainerProcessingPattern extends ContainerPattern {
 
     @Override
     protected void analyse() {
-        if (this.details instanceof AEProcessingPattern pattern) {
+        if (this.details instanceof AEProcessingPattern) {
+            AEProcessingPattern pattern = (AEProcessingPattern) this.details;
             var rawInputs = pattern.getSparseInputs();
             for (var in : rawInputs) {
                 if (in == null) {
@@ -53,5 +55,4 @@ public class ContainerProcessingPattern extends ContainerPattern {
             this.invalidate();
         }
     }
-
 }
