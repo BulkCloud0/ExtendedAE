@@ -20,6 +20,7 @@ import com.glodblock.github.extendedae.ExtendedAE;
 import com.glodblock.github.extendedae.api.StorageMode;
 import com.glodblock.github.extendedae.common.parts.base.PartSpecialStorageBus;
 import com.glodblock.github.extendedae.container.ContainerPreciseStorageBus;
+import lombok.var;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -132,7 +133,8 @@ public class PartPreciseStorageBus extends PartSpecialStorageBus implements ICon
         public long insert(AEKey what, long amount, Actionable mode, IActionSource source) {
             var filter = this.getPartitionList();
             long toAdd = 0;
-            if (filter instanceof PreciseFilter p) {
+            if (filter instanceof PreciseFilter) {
+                PreciseFilter p = (PreciseFilter) filter;
                 toAdd = p.getAmount(what);
             }
             if (toAdd <= 0) {
