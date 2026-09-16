@@ -17,6 +17,7 @@ import appeng.util.inv.CombinedInternalInventory;
 import appeng.util.inv.FilteredInternalInventory;
 import appeng.util.inv.filter.IAEItemFilter;
 import com.glodblock.github.extendedae.common.tileentities.TileExInscriber;
+import lombok.var;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
@@ -55,10 +56,10 @@ public class InscriberThread {
         this.bottomItemHandler = new AppEngInternalInventory(this.host, 1, 1, baseFilter);
         this.sideItemHandler = new AppEngInternalInventory(this.host, 2, 1, baseFilter);
         this.inv = new CombinedInternalInventory(this.topItemHandler, this.bottomItemHandler, this.sideItemHandler);
-        this.lastStacks = new IdentityHashMap<>(Map.of(
-                topItemHandler, ItemStack.EMPTY, bottomItemHandler, ItemStack.EMPTY,
-                sideItemHandler, ItemStack.EMPTY)
-        );
+        this.lastStacks = new IdentityHashMap<>();
+        this.lastStacks.put(topItemHandler, ItemStack.EMPTY);
+        this.lastStacks.put(bottomItemHandler, ItemStack.EMPTY);
+        this.lastStacks.put(sideItemHandler, ItemStack.EMPTY);
         var automationFilter = new AutomationFilter();
         this.topItemHandlerExtern = new FilteredInternalInventory(this.topItemHandler, automationFilter);
         this.bottomItemHandlerExtern = new FilteredInternalInventory(this.bottomItemHandler, automationFilter);
@@ -196,13 +197,24 @@ public class InscriberThread {
             this.host.getMainNode().ifPresent(grid -> {
                 IEnergyService eg = grid.getEnergyService();
                 IEnergySource src = this.host;
-                final int speedFactor = switch (this.host.getUpgrades().getInstalledUpgrades(AEItems.SPEED_CARD)) {
-                    default -> 2; // 116 ticks
-                    case 1 -> 3; // 83 ticks
-                    case 2 -> 5; // 56 ticks
-                    case 3 -> 10; // 36 ticks
-                    case 4 -> 50; // 20 ticks
-                };
+                final int speedFactor;
+                switch (this.host.getUpgrades().getInstalledUpgrades(AEItems.SPEED_CARD)) {
+                    case 1:
+                        speedFactor = 3;
+                        break;
+                    case 2:
+                        speedFactor = 5;
+                        break;
+                    case 3:
+                        speedFactor = 10;
+                        break;
+                    case 4:
+                        speedFactor = 50;
+                        break;
+                    default:
+                        speedFactor = 2;
+                        break;
+                }
                 final int powerConsumption = 10 * speedFactor;
                 final double powerThreshold = powerConsumption - 0.01;
                 double powerReq = this.host.extractAEPower(powerConsumption, Actionable.SIMULATE, PowerMultiplier.CONFIG);
@@ -274,7 +286,7 @@ public class InscriberThread {
             ItemStack plateA = this.topItemHandler.getStackInSlot(0);
             ItemStack plateB = this.bottomItemHandler.getStackInSlot(0);
             if (input.isEmpty()) {
-                return null; // No input to handle
+                return null;
             }
             this.cachedTask = InscriberRecipes.findRecipe(this.host.getLevel(), input, plateA, plateB, true);
         }
@@ -284,14 +296,10 @@ public class InscriberThread {
     public class BaseFilter implements IAEItemFilter {
         @Override
         public boolean allowInsert(InternalInventory inv, int slot, ItemStack stack) {
-            // output slot
             if (slot == 1) {
-                // slots and automation prevent insertion into the output,
-                // we need it here for the inscriber's own internal logic
                 return true;
             }
 
-            // always allow name press
             if (inv == topItemHandler || inv == bottomItemHandler) {
                 if (AEItems.NAME_PRESS.isSameAs(stack)) {
                     return true;
@@ -300,11 +308,9 @@ public class InscriberThread {
 
             if (inv == sideItemHandler && (AEItems.NAME_PRESS.isSameAs(topItemHandler.getStackInSlot(0))
                     || AEItems.NAME_PRESS.isSameAs(bottomItemHandler.getStackInSlot(0)))) {
-                // can always rename anything
                 return true;
             }
 
-            // only allow if is a proper recipe match
             ItemStack bot = bottomItemHandler.getStackInSlot(0);
             ItemStack middle = sideItemHandler.getStackInSlot(0);
             ItemStack top = topItemHandler.getStackInSlot(0);
@@ -347,21 +353,20 @@ public class InscriberThread {
         @Override
         public boolean allowExtract(InternalInventory inv, int slot, int amount) {
             if (slot == 1) {
-                return true; // Can always extract from output slot
+                return true;
             }
 
             if (isSmash()) {
                 return false;
             }
 
-            // Can only extract from top and bottom in separated sides mode
             return host.isSeparateSides() && (inv == topItemHandler || inv == bottomItemHandler);
         }
 
         @Override
         public boolean allowInsert(InternalInventory inv, int slot, ItemStack stack) {
             if (slot == 1) {
-                return false; // No inserting into the output slot
+                return false;
             }
             return !isSmash();
         }
