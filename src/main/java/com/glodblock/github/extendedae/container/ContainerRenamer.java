@@ -10,6 +10,7 @@ import com.glodblock.github.extendedae.util.Ae2Reflect;
 import com.glodblock.github.glodium.network.packet.SGenericPacket;
 import com.glodblock.github.glodium.network.packet.sync.IActionHolder;
 import com.glodblock.github.glodium.network.packet.sync.Paras;
+import lombok.var;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Nameable;
@@ -41,7 +42,8 @@ public class ContainerRenamer extends AEBaseMenu implements IActionHolder {
         }
         this.actions.put("set", o -> this.setName(o.get(0)));
         this.actions.put("update", o -> {
-            if (this.getPlayer() instanceof ServerPlayer sp) {
+            if (this.getPlayer() instanceof ServerPlayer) {
+                ServerPlayer sp = (ServerPlayer) this.getPlayer();
                 EPPNetworkHandler.INSTANCE.sendTo(new SGenericPacket("init", this.name), sp);
             }
         });
@@ -66,7 +68,8 @@ public class ContainerRenamer extends AEBaseMenu implements IActionHolder {
     }
 
     private static Supplier<Component> getter(Object o) {
-        if (o instanceof Nameable n) {
+        if (o instanceof Nameable) {
+            Nameable n = (Nameable) o;
             return n::getCustomName;
         }
         return null;
@@ -75,12 +78,14 @@ public class ContainerRenamer extends AEBaseMenu implements IActionHolder {
     private static Consumer<String> setter(Object o) {
         if (o instanceof AEBaseBlockEntity || o instanceof AEBasePart){
             return s -> {
-                var c = s.isBlank() ? null : Component.literal(s);
+                var c = s.trim().isEmpty() ? null : Component.literal(s);
                 Ae2Reflect.setCustomName(o, c);
-                if (o instanceof AEBaseBlockEntity te) {
+                if (o instanceof AEBaseBlockEntity) {
+                    AEBaseBlockEntity te = (AEBaseBlockEntity) o;
                     te.setChanged();
                 }
-                if (o instanceof AEBasePart part) {
+                if (o instanceof AEBasePart) {
+                    AEBasePart part = (AEBasePart) o;
                     part.getHost().markForSave();
                 }
             };
