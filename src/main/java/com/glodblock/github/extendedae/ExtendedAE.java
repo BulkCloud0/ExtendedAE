@@ -19,7 +19,6 @@ import net.minecraftforge.event.TagsUpdatedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -27,15 +26,31 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
 import org.slf4j.Logger;
 
-@Mod(ExtendedAE.MODID)
+/**
+ * Embedded ExtendedAE bootstrap used by ExpansionAE.
+ *
+ * <p>The legacy registry/resource namespace remains {@code expatternprovider}
+ * so existing recipes, models and registry identifiers do not need to be
+ * renamed while the 1.16.5 port is completed. This class is deliberately not
+ * a Forge {@code @Mod} entrypoint; ExpansionAE owns the single mod container.
+ */
 public class ExtendedAE {
 
     public static final String MODID = "expatternprovider";
     public static final Logger LOGGER = LogUtils.getLogger();
     public static ExtendedAE INSTANCE;
 
+    public static ExtendedAE bootstrap() {
+        if (INSTANCE == null) {
+            new ExtendedAE();
+        }
+        return INSTANCE;
+    }
+
     public ExtendedAE() {
-        assert INSTANCE == null;
+        if (INSTANCE != null) {
+            throw new IllegalStateException("ExtendedAE is already embedded");
+        }
         INSTANCE = this;
         LoadList.init();
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -73,5 +88,4 @@ public class ExtendedAE {
     public static ResourceLocation id(String id) {
         return new ResourceLocation(MODID, id);
     }
-
 }
