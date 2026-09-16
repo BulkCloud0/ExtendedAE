@@ -3,6 +3,7 @@ package com.glodblock.github.extendedae.container.pattern;
 import appeng.api.stacks.GenericStack;
 import appeng.crafting.pattern.AESmithingTablePattern;
 import com.glodblock.github.extendedae.ExtendedAE;
+import lombok.var;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
@@ -24,7 +25,8 @@ public class ContainerSmithingTablePattern extends ContainerPattern {
 
     @Override
     protected void analyse() {
-        if (this.details instanceof AESmithingTablePattern pattern) {
+        if (this.details instanceof AESmithingTablePattern) {
+            AESmithingTablePattern pattern = (AESmithingTablePattern) this.details;
             var rawInputs = pattern.getInputs();
             for (var in : rawInputs) {
                 var inStacks = new GenericStack[] {in.getPossibleInputs()[0]};
@@ -36,5 +38,4 @@ public class ContainerSmithingTablePattern extends ContainerPattern {
             this.invalidate();
         }
     }
-
 }
