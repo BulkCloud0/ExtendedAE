@@ -19,7 +19,6 @@ import net.minecraftforge.event.TagsUpdatedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -27,7 +26,13 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
 import org.slf4j.Logger;
 
-@Mod(ExtendedAE.MODID)
+/**
+ * ExtendedAE bootstrap used by ExpansionAE.
+ *
+ * This class intentionally is not annotated with @Mod. ExpansionAE is the sole
+ * Forge mod container and invokes this bootstrap so the original ExtendedAE
+ * registries and mechanics remain available in the unified jar.
+ */
 public class ExtendedAE {
 
     public static final String MODID = "expatternprovider";
@@ -73,5 +78,4 @@ public class ExtendedAE {
     public static ResourceLocation id(String id) {
         return new ResourceLocation(MODID, id);
     }
-
 }
