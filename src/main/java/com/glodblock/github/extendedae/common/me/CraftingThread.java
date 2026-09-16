@@ -18,6 +18,7 @@ import appeng.util.inv.FilteredInternalInventory;
 import appeng.util.inv.InternalInventoryHost;
 import appeng.util.inv.filter.IAEItemFilter;
 import com.glodblock.github.extendedae.ExtendedAE;
+import lombok.var;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
@@ -67,7 +68,8 @@ public class CraftingThread {
 
     public boolean acceptJob(IPatternDetails patternDetails, KeyCounter[] table, Direction where) {
         if (this.myPattern.isEmpty()) {
-            if (this.gridInv.isEmpty() && patternDetails instanceof IMolecularAssemblerSupportedPattern pattern) {
+            if (this.gridInv.isEmpty() && patternDetails instanceof IMolecularAssemblerSupportedPattern) {
+                IMolecularAssemblerSupportedPattern pattern = (IMolecularAssemblerSupportedPattern) patternDetails;
                 this.forcePlan = true;
                 this.myPlan = pattern;
                 this.pushDirection = where;
@@ -139,7 +141,6 @@ public class CraftingThread {
             return this.isAwake ? TickRateModulation.IDLE : TickRateModulation.SLEEP;
         }
         if (this.myPlan == null) {
-            // clear possible jammed stuffs
             this.ejectHeldItems();
             this.updateSleepiness();
             return TickRateModulation.SLEEP;
@@ -152,12 +153,26 @@ public class CraftingThread {
         }
         this.reboot = false;
         switch (cards) {
-            case 0 -> this.progress += this.userPower(ticksSinceLastCall, 20, 1.0);
-            case 1 -> this.progress += this.userPower(ticksSinceLastCall, 26, 1.3);
-            case 2 -> this.progress += this.userPower(ticksSinceLastCall, 34, 1.7);
-            case 3 -> this.progress += this.userPower(ticksSinceLastCall, 40, 2.0);
-            case 4 -> this.progress += this.userPower(ticksSinceLastCall, 50, 2.5);
-            case 5 -> this.progress += this.userPower(ticksSinceLastCall, 100, 5.0);
+            case 0:
+                this.progress += this.userPower(ticksSinceLastCall, 20, 1.0);
+                break;
+            case 1:
+                this.progress += this.userPower(ticksSinceLastCall, 26, 1.3);
+                break;
+            case 2:
+                this.progress += this.userPower(ticksSinceLastCall, 34, 1.7);
+                break;
+            case 3:
+                this.progress += this.userPower(ticksSinceLastCall, 40, 2.0);
+                break;
+            case 4:
+                this.progress += this.userPower(ticksSinceLastCall, 50, 2.5);
+                break;
+            case 5:
+                this.progress += this.userPower(ticksSinceLastCall, 100, 5.0);
+                break;
+            default:
+                break;
         }
         if (this.progress >= 100) {
             return this.onCraftingDone();
@@ -204,8 +219,9 @@ public class CraftingThread {
         if (this.forcePlan) {
             if (this.host.getLevel() != null && myPlan == null) {
                 if (!myPattern.isEmpty()) {
-                    if (PatternDetailsHelper.decodePattern(myPattern, this.host.getLevel()) instanceof IMolecularAssemblerSupportedPattern supportedPlan) {
-                        this.myPlan = supportedPlan;
+                    IPatternDetails decoded = PatternDetailsHelper.decodePattern(myPattern, this.host.getLevel());
+                    if (decoded instanceof IMolecularAssemblerSupportedPattern) {
+                        this.myPlan = (IMolecularAssemblerSupportedPattern) decoded;
                     }
                 }
                 this.myPattern = ItemStack.EMPTY;
@@ -299,7 +315,6 @@ public class CraftingThread {
 
     public void fillGrid(KeyCounter[] table, IMolecularAssemblerSupportedPattern adapter) {
         adapter.fillCraftingGrid(table, this.gridInv::setItemDirect);
-        // Sanity check
         for (var list : table) {
             list.removeZeros();
             if (!list.isEmpty()) {
