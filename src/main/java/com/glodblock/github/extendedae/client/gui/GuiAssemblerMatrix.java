@@ -31,6 +31,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ReferenceMap;
 import it.unimi.dsi.fastutil.longs.Long2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
+import lombok.var;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
@@ -60,7 +61,7 @@ public class GuiAssemblerMatrix extends AEBaseScreen<ContainerAssemblerMatrix> i
     private final Map<String, Consumer<Paras>> actions = createHolder();
     private final Scrollbar scrollbar;
     private final Long2ReferenceMap<PatternInfo> infos = new Long2ReferenceOpenHashMap<>();
-    private final Set<ItemStack> matchedStack = new ObjectOpenCustomHashSet<>(new Hash.Strategy<>() {
+    private final Set<ItemStack> matchedStack = new ObjectOpenCustomHashSet<>(new Hash.Strategy<ItemStack>() {
         @Override
         public int hashCode(ItemStack o) {
             return o.getItem().hashCode() ^ (o.hasTag() ? o.getTag().hashCode() : 0xFFFFFFFF);
@@ -157,7 +158,8 @@ public class GuiAssemblerMatrix extends AEBaseScreen<ContainerAssemblerMatrix> i
 
     @Override
     protected void slotClicked(Slot slot, int slotIdx, int mouseButton, ClickType clickType) {
-        if (slot instanceof AssemblerMatrixSlot machineSlot) {
+        if (slot instanceof AssemblerMatrixSlot) {
+            AssemblerMatrixSlot machineSlot = (AssemblerMatrixSlot) slot;
             InventoryAction action = null;
             switch (clickType) {
                 case PICKUP:
@@ -173,6 +175,7 @@ public class GuiAssemblerMatrix extends AEBaseScreen<ContainerAssemblerMatrix> i
                     break;
                 default:
                 case THROW:
+                    break;
             }
             if (action != null) {
                 final InventoryActionPacket p = new InventoryActionPacket(action, machineSlot.getActuallySlot(), machineSlot.getID());
@@ -217,7 +220,7 @@ public class GuiAssemblerMatrix extends AEBaseScreen<ContainerAssemblerMatrix> i
 
     private boolean filterRows(PatternRow row) {
         var filter = this.searchField.getValue();
-        if (filter.isBlank()) {
+        if (filter.trim().isEmpty()) {
             return true;
         }
         final var token = FCUtil.tokenize(filter);
