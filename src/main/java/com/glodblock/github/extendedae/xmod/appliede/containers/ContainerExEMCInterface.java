@@ -11,6 +11,7 @@ import com.glodblock.github.extendedae.api.IPage;
 import com.glodblock.github.extendedae.client.ExSemantics;
 import gripe._90.appliede.me.misc.EMCInterfaceLogicHost;
 import gripe._90.appliede.menu.EMCSetStockAmountMenu;
+import lombok.var;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.MenuType;
@@ -65,9 +66,9 @@ public class ContainerExEMCInterface extends UpgradeableMenu<EMCInterfaceLogicHo
         for (int index = 0; index < 4; index ++) {
             var slots = this.getSlots(CONFIG_PATTERN[index]);
             slots.addAll(this.getSlots(STORAGE_PATTERN[index]));
-            for (var slot : slots) {
-                if (slot instanceof AppEngSlot as) {
-                    as.setActive(page == (index / 2));
+            for (Slot slot : slots) {
+                if (slot instanceof AppEngSlot) {
+                    ((AppEngSlot) slot).setActive(page == (index / 2));
                 }
             }
         }
@@ -78,7 +79,8 @@ public class ContainerExEMCInterface extends UpgradeableMenu<EMCInterfaceLogicHo
             sendClientAction(ACTION_OPEN_SET_AMOUNT, configSlot);
         } else {
             var stack = getHost().getConfig().getStack(configSlot);
-            if (stack != null && stack.what() instanceof AEItemKey item) {
+            if (stack != null && stack.what() instanceof AEItemKey) {
+                AEItemKey item = (AEItemKey) stack.what();
                 EMCSetStockAmountMenu.open((ServerPlayer) getPlayer(), getLocator(), configSlot, item, (int) stack.amount());
             }
         }
@@ -86,8 +88,8 @@ public class ContainerExEMCInterface extends UpgradeableMenu<EMCInterfaceLogicHo
 
     @Override
     public void broadcastChanges() {
-        if (this.getHost() instanceof IPage pg) {
-            this.page = pg.getPage();
+        if (this.getHost() instanceof IPage) {
+            this.page = ((IPage) this.getHost()).getPage();
         }
         super.broadcastChanges();
     }
@@ -95,8 +97,8 @@ public class ContainerExEMCInterface extends UpgradeableMenu<EMCInterfaceLogicHo
     @Override
     public void setPage(int page) {
         this.page = page;
-        if (this.getHost() instanceof IPage pg) {
-            pg.setPage(page);
+        if (this.getHost() instanceof IPage) {
+            ((IPage) this.getHost()).setPage(page);
         }
     }
 
