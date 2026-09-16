@@ -12,6 +12,7 @@ import com.glodblock.github.extendedae.api.CraftingMode;
 import com.glodblock.github.extendedae.container.ContainerExCraftingTerminal;
 import com.glodblock.github.extendedae.network.EPPNetworkHandler;
 import com.glodblock.github.glodium.network.packet.CGenericPacket;
+import lombok.var;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
@@ -33,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ExCraftingTransferHandler<T extends ContainerExCraftingTerminal> extends AbstractTransferHandler implements IRecipeTransferHandler<T, Object> {
 
@@ -48,7 +50,8 @@ public class ExCraftingTransferHandler<T extends ContainerExCraftingTerminal> ex
 
     @Override
     public @Nullable IRecipeTransferError transferRecipe(@NotNull T container, @NotNull Object obj, @NotNull IRecipeSlotsView recipeSlots, @NotNull Player player, boolean maxTransfer, boolean doTransfer) {
-        if (obj instanceof Recipe<?> recipe) {
+        if (obj instanceof Recipe<?>) {
+            Recipe<?> recipe = (Recipe<?>) obj;
             var type = recipe.getType();
             boolean craftMissing = AbstractContainerScreen.hasControlDown();
             if (type == RecipeType.CRAFTING) {
@@ -78,14 +81,12 @@ public class ExCraftingTransferHandler<T extends ContainerExCraftingTerminal> ex
         var inputSlots = display.getSlotViews(RecipeIngredientRole.INPUT);
         var missingSlots = menu.findMissingIngredients(slotToIngredientMap);
         if (missingSlots.missingSlots().size() == slotToIngredientMap.size()) {
-            // All missing, can't do much...
             var missingSlotViews = missingSlots.missingSlots().stream()
                     .map(idx -> idx < inputSlots.size() ? inputSlots.get(idx) : null)
                     .filter(Objects::nonNull)
-                    .toList();
+                    .collect(Collectors.toList());
             return this.helper.createUserErrorForMissingSlots(ItemModText.NO_ITEMS.text(), missingSlotViews);
         }
-        // Find missing ingredients and highlight the slots which have these
         if (!doTransfer) {
             if (missingSlots.totalSize() != 0) {
                 int color = missingSlots.anyMissing() ? TransferHelper.ORANGE_PLUS_BUTTON_COLOR : TransferHelper.BLUE_PLUS_BUTTON_COLOR;
@@ -98,7 +99,6 @@ public class ExCraftingTransferHandler<T extends ContainerExCraftingTerminal> ex
                 EPPNetworkHandler.INSTANCE.sendToServer(new CGenericPacket("stonecutter_select", recipe.getId().toString()));
             }
         }
-        // No error
         return null;
     }
 
@@ -136,10 +136,9 @@ public class ExCraftingTransferHandler<T extends ContainerExCraftingTerminal> ex
             return UseCraftingRecipeTransfer.getGuiSlotToIngredientMap(recipe);
         }
         var ingredients = recipe.getIngredients();
-        // JEI will align non-shaped recipes smaller than 3x3 in the grid. It'll center them horizontally, and
-        // some will be aligned to the bottom. (i.e. slab recipes).
         int width, height;
-        if (recipe instanceof ShapedRecipe shapedRecipe) {
+        if (recipe instanceof ShapedRecipe) {
+            ShapedRecipe shapedRecipe = (ShapedRecipe) recipe;
             width = shapedRecipe.getWidth();
             height = shapedRecipe.getHeight();
         } else {
@@ -190,7 +189,16 @@ public class ExCraftingTransferHandler<T extends ContainerExCraftingTerminal> ex
         return index;
     }
 
-    private record ErrorRenderer(CraftingTermMenu.MissingIngredientSlots indices, boolean craftMissing, int color) implements IRecipeTransferError {
+    private static final class ErrorRenderer implements IRecipeTransferError {
+        private final CraftingTermMenu.MissingIngredientSlots indices;
+        private final boolean craftMissing;
+        private final int color;
+
+        private ErrorRenderer(CraftingTermMenu.MissingIngredientSlots indices, boolean craftMissing, int color) {
+            this.indices = indices;
+            this.craftMissing = craftMissing;
+            this.color = color;
+        }
 
         @Override
         public @NotNull Type getType() {
@@ -208,7 +216,6 @@ public class ExCraftingTransferHandler<T extends ContainerExCraftingTerminal> ex
             poseStack.pushPose();
             poseStack.translate(recipeX, recipeY, 0);
 
-            // 1) draw slot highlights
             var slotViews = slots.getSlotViews(RecipeIngredientRole.INPUT);
             for (int i = 0; i < slotViews.size(); i++) {
                 var slotView = slotViews.get(i);
@@ -221,7 +228,6 @@ public class ExCraftingTransferHandler<T extends ContainerExCraftingTerminal> ex
 
             poseStack.popPose();
 
-            // 2) draw tooltip
             var tooltip = TransferHelper.createCraftingTooltip(indices, craftMissing);
             JEIPlugin.drawHoveringText(guiGraphics, tooltip, mouseX, mouseY);
         }
