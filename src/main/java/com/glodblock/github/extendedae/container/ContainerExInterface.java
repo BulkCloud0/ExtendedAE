@@ -12,6 +12,7 @@ import appeng.menu.slot.AppEngSlot;
 import appeng.menu.slot.FakeSlot;
 import com.glodblock.github.extendedae.api.IPage;
 import com.glodblock.github.extendedae.client.ExSemantics;
+import lombok.var;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.MenuType;
@@ -70,7 +71,8 @@ public class ContainerExInterface extends UpgradeableMenu<InterfaceLogicHost> im
             var slots = this.getSlots(CONFIG_PATTERN[index]);
             slots.addAll(this.getSlots(STORAGE_PATTERN[index]));
             for (var slot : slots) {
-                if (slot instanceof AppEngSlot as) {
+                if (slot instanceof AppEngSlot) {
+                    AppEngSlot as = (AppEngSlot) slot;
                     as.setActive(page == (index / 2));
                 }
             }
@@ -96,7 +98,8 @@ public class ContainerExInterface extends UpgradeableMenu<InterfaceLogicHost> im
 
     @Override
     public void broadcastChanges() {
-        if (this.getHost() instanceof IPage pg) {
+        if (this.getHost() instanceof IPage) {
+            IPage pg = (IPage) this.getHost();
             this.page = pg.getPage();
         }
         super.broadcastChanges();
@@ -105,7 +108,8 @@ public class ContainerExInterface extends UpgradeableMenu<InterfaceLogicHost> im
     @Override
     public void setPage(int page) {
         this.page = page;
-        if (this.getHost() instanceof IPage pg) {
+        if (this.getHost() instanceof IPage) {
+            IPage pg = (IPage) this.getHost();
             pg.setPage(page);
         }
     }
