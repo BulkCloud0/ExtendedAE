@@ -19,6 +19,7 @@ import com.glodblock.github.extendedae.util.Ae2ReflectClient;
 import com.glodblock.github.extendedae.util.RecipeManagerAccessor;
 import com.glodblock.github.extendedae.xmod.jei.recipe.CircuitCutterCategory;
 import com.glodblock.github.extendedae.xmod.jei.transfer.ExCraftingTransferHandler;
+import lombok.var;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.gui.handlers.IGuiClickableArea;
@@ -38,6 +39,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -67,7 +69,7 @@ public class JEIPlugin implements IModPlugin {
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
         var manager = ((RecipeManagerAccessor) Minecraft.getInstance().level.getRecipeManager());
-        registration.addRecipes(CircuitCutterCategory.RECIPE_TYPE, List.copyOf(manager.getByType(CircuitCutterRecipe.TYPE).values()));
+        registration.addRecipes(CircuitCutterCategory.RECIPE_TYPE, new ArrayList<>(manager.getByType(CircuitCutterRecipe.TYPE).values()));
     }
 
     @Override
@@ -83,19 +85,20 @@ public class JEIPlugin implements IModPlugin {
                     @Override
                     public @NotNull Optional<IClickableIngredient<?>> getClickableIngredientUnderMouse(@NotNull GuiPattern<?> screen, double mouseX, double mouseY) {
                         var stackWithBounds = screen.getSlotUnderMouse();
-                        if (stackWithBounds instanceof ContainerPattern.DisplayOnlySlot dpSlot) {
+                        if (stackWithBounds instanceof ContainerPattern.DisplayOnlySlot) {
+                            ContainerPattern.DisplayOnlySlot dpSlot = (ContainerPattern.DisplayOnlySlot) stackWithBounds;
                             var genStack = dpSlot.getItem();
                             if (!genStack.isEmpty()) {
                                 var item = genStack.getItem();
-                                var key = item instanceof WrappedGenericStack wgs
-                                        ? wgs.unwrapWhat(genStack) : AEItemKey.of(genStack);
-                                var amount = item instanceof WrappedGenericStack wgs
-                                        ? wgs.unwrapAmount(genStack) : dpSlot.getActualAmount();
+                                var key = item instanceof WrappedGenericStack
+                                        ? ((WrappedGenericStack) item).unwrapWhat(genStack) : AEItemKey.of(genStack);
+                                var amount = item instanceof WrappedGenericStack
+                                        ? ((WrappedGenericStack) item).unwrapAmount(genStack) : dpSlot.getActualAmount();
                                 if (key != null && amount > 0) {
-                                    var ing = GenericEntryStackHelper.stackToIngredient(jeiRuntime.getIngredientManager(), new GenericStack(key, amount));
-                                    var area = new Rect2i(screen.getGuiLeft() + dpSlot.x, screen.getGuiTop() + dpSlot.y, 16, 16);
+                                    final ITypedIngredient<?> ing = GenericEntryStackHelper.stackToIngredient(jeiRuntime.getIngredientManager(), new GenericStack(key, amount));
+                                    final Rect2i area = new Rect2i(screen.getGuiLeft() + dpSlot.x, screen.getGuiTop() + dpSlot.y, 16, 16);
                                     if (ing != null) {
-                                        return Optional.of(new IClickableIngredient<>() {
+                                        return Optional.of(new IClickableIngredient<Object>() {
                                             @Override
                                             @SuppressWarnings({"rawtypes", "unchecked"})
                                             public @NotNull ITypedIngredient getTypedIngredient() {
