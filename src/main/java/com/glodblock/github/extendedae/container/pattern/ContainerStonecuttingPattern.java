@@ -3,6 +3,7 @@ package com.glodblock.github.extendedae.container.pattern;
 import appeng.api.stacks.GenericStack;
 import appeng.crafting.pattern.AEStonecuttingPattern;
 import com.glodblock.github.extendedae.ExtendedAE;
+import lombok.var;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
@@ -22,7 +23,8 @@ public class ContainerStonecuttingPattern extends ContainerPattern {
 
     @Override
     protected void analyse() {
-        if (this.details instanceof AEStonecuttingPattern pattern) {
+        if (this.details instanceof AEStonecuttingPattern) {
+            AEStonecuttingPattern pattern = (AEStonecuttingPattern) this.details;
             var rawInput = clean(pattern.getInputs()[0].getPossibleInputs());
             var inStacks = new GenericStack[rawInput.length];
             for (int i = 0; i < inStacks.length; i ++) {
@@ -35,5 +37,4 @@ public class ContainerStonecuttingPattern extends ContainerPattern {
             this.invalidate();
         }
     }
-
 }
