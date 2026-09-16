@@ -4,6 +4,7 @@ import appeng.api.stacks.GenericStack;
 import appeng.crafting.pattern.AECraftingPattern;
 import com.glodblock.github.extendedae.ExtendedAE;
 import com.glodblock.github.extendedae.util.Ae2Reflect;
+import lombok.var;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
@@ -29,7 +30,8 @@ public class ContainerCraftingPattern extends ContainerPattern {
 
     @Override
     protected void analyse() {
-        if (this.details instanceof AECraftingPattern pattern) {
+        if (this.details instanceof AECraftingPattern) {
+            AECraftingPattern pattern = (AECraftingPattern) this.details;
             var rawInputs = pattern.getInputs();
             var tmpInputs = new GenericStack[9][];
             for (int i = 0; i < 9; i ++) {
@@ -54,11 +56,10 @@ public class ContainerCraftingPattern extends ContainerPattern {
     }
 
     public boolean canSubstitute() {
-        return this.details instanceof AECraftingPattern pattern && pattern.canSubstitute();
+        return this.details instanceof AECraftingPattern && ((AECraftingPattern) this.details).canSubstitute();
     }
 
     public boolean canSubstituteFluids() {
-        return this.details instanceof AECraftingPattern pattern && pattern.canSubstituteFluids();
+        return this.details instanceof AECraftingPattern && ((AECraftingPattern) this.details).canSubstituteFluids();
     }
-
 }
