@@ -28,6 +28,7 @@ import com.glodblock.github.glodium.network.packet.SGenericPacket;
 import com.glodblock.github.glodium.network.packet.sync.IActionHolder;
 import com.glodblock.github.glodium.network.packet.sync.Paras;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import lombok.var;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -198,14 +199,17 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
             return;
         }
         var s = this.getSlot(slot);
-        if (s instanceof OutputResultSlot outputSlot) {
+        if (s instanceof OutputResultSlot) {
+            OutputResultSlot outputSlot = (OutputResultSlot) s;
             switch (action) {
                 case CRAFT_SHIFT:
                 case CRAFT_ALL:
                 case CRAFT_ITEM:
                 case CRAFT_STACK:
                     outputSlot.doClick(action, player);
+                    break;
                 default:
+                    break;
             }
         }
         super.doAction(player, action, slot, id);
@@ -229,7 +233,8 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
     }
 
     public void playSound() {
-        if (this.getPlayer() instanceof ServerPlayer sp) {
+        if (this.getPlayer() instanceof ServerPlayer) {
+            ServerPlayer sp = (ServerPlayer) this.getPlayer();
             EPPNetworkHandler.INSTANCE.sendTo(new SGenericPacket("play_sound", this.currentMode.ordinal()), sp);
         }
     }
@@ -242,7 +247,6 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
         this.anvilMaterialCost = 0;
         this.anvilOutputSlot.set(ItemStack.EMPTY);
 
-        // Update available liquid XP
         if (left.isEmpty()) {
             return;
         }
@@ -253,7 +257,6 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
         boolean increaseCost = false;
         boolean hasOperation = false;
 
-        // Renaming
         if (!StringUtil.isNullOrEmpty(this.itemName)) {
             if (this.anvilOutputSlot.getItem().getCount() != left.getCount()) {
                 hasOperation = true;
@@ -270,14 +273,12 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
             hasOperation = true;
         }
 
-        // Combining items
         if (!right.isEmpty()) {
             if (left.getCount() != 1) {
                 this.anvilOutputSlot.set(ItemStack.EMPTY);
                 return;
             }
             if (left.getItem() == right.getItem() && left.isDamageableItem()) {
-                // Repair by combining
                 int leftDurability = left.getMaxDamage() - left.getDamageValue();
                 int rightDurability = right.getMaxDamage() - right.getDamageValue();
                 int bonus = left.getMaxDamage() * 12 / 100;
@@ -288,7 +289,6 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
                     baseCost += 2;
                     hasOperation = true;
                 }
-                // Transfer enchantments
                 Map<Enchantment, Integer> rightEnchants = EnchantmentHelper.getEnchantments(right);
                 if (!rightEnchants.isEmpty()) {
                     Map<Enchantment, Integer> leftEnchants = EnchantmentHelper.getEnchantments(result);
@@ -304,7 +304,6 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
                                     continue;
                                 }
                             }
-                            // Check compatibility
                             boolean compatible = true;
                             for (Enchantment existing : leftEnchants.keySet()) {
                                 if (existing != enchant && !enchant.isCompatibleWith(existing)) {
@@ -339,7 +338,6 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
                                 continue;
                             }
                         }
-                        // Check compatibility
                         boolean compatible = true;
                         for (Enchantment existing : leftEnchants.keySet()) {
                             if (existing != enchant && !enchant.isCompatibleWith(existing)) {
@@ -351,7 +349,6 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
                         if (compatible) {
                             leftEnchants.put(enchant, newLevel);
                             int rarityCost = this.getEnchantCost(enchant);
-                            // See Anvil Menu's code
                             rarityCost = Math.max(rarityCost / 2, 1);
                             baseCost += newLevel * rarityCost;
                             increaseCost = true;
@@ -363,7 +360,6 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
                     EnchantmentHelper.setEnchantments(leftEnchants, result);
                 }
             } else if (left.isDamageableItem() && left.getItem().isValidRepairItem(left, right)) {
-                // Repair with material
                 int damagePerMaterial = Math.max(1, left.getMaxDamage() / 4);
                 int materialsNeeded = 0;
                 int currentDamage = left.getDamageValue();
@@ -378,7 +374,6 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
                     hasOperation = true;
                 }
             } else {
-                // invalid combine
                 result = ItemStack.EMPTY;
                 hasOperation = true;
             }
@@ -388,10 +383,7 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
             return;
         }
 
-        // Calculate final cost
         this.anvilCost = repairCost + baseCost;
-
-        // Update repair cost on result
         if (increaseCost) {
             result.setRepairCost(repairCost * 2 + 1);
         }
@@ -399,12 +391,18 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
     }
 
     private int getEnchantCost(Enchantment enchantment) {
-        return switch (enchantment.getRarity()) {
-            case COMMON -> 1;
-            case UNCOMMON -> 2;
-            case RARE -> 4;
-            case VERY_RARE -> 8;
-        };
+        switch (enchantment.getRarity()) {
+            case COMMON:
+                return 1;
+            case UNCOMMON:
+                return 2;
+            case RARE:
+                return 4;
+            case VERY_RARE:
+                return 8;
+            default:
+                return 1;
+        }
     }
 
     @NotNull
@@ -422,21 +420,17 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
         }
         int levelsRequired = this.anvilCost;
         if (!player.getAbilities().instabuild) {
-            // First consume liquid XP, then player XP
             int remainingCost = this.consumeLiquidXp(levelsRequired, simulate);
             if (remainingCost > 0) {
                 if (!simulate) {
                     player.giveExperienceLevels(-remainingCost);
-                } else {
-                    if (player.experienceLevel < remainingCost) {
-                        return ItemStack.EMPTY;
-                    }
+                } else if (player.experienceLevel < remainingCost) {
+                    return ItemStack.EMPTY;
                 }
             }
         }
         var result = this.anvilOutputSlot.getItem().copy();
         if (!simulate) {
-            // Consume input items
             this.anvilInputSlots[0].set(ItemStack.EMPTY);
             if (this.anvilMaterialCost > 0) {
                 ItemStack right = this.anvilInputSlots[1].getItem();
@@ -449,7 +443,6 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
         return result;
     }
 
-    // Return the needed level - fluid experience
     private int consumeLiquidXp(int levelsRequired, boolean simulate) {
         var node = this.host.getActionableNode();
         if (node == null) {
@@ -466,8 +459,6 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
             return levelsRequired;
         }
 
-        // Convert levels to XP points (rough approximation)
-        // Level N requires about N*7 XP points on average
         long xpNeeded = getTotalXpForLevel(levelsRequired);
         long mbNeeded = xpNeeded * MB_PER_XP;
 
@@ -503,12 +494,18 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
 
     @Override
     public InternalInventory getCraftingMatrix() {
-        return switch (this.currentMode) {
-            case CRAFTING -> this.host.getSubInventory(PartExCraftingTerminal.INV_CRAFTING);
-            case SMITHING -> this.host.getSubInventory(PartExCraftingTerminal.INV_SMITHING);
-            case STONECUTTER -> this.host.getSubInventory(PartExCraftingTerminal.INV_STONECUTTING);
-            case ANVIL -> this.host.getSubInventory(PartExCraftingTerminal.INV_ANVIL);
-        };
+        switch (this.currentMode) {
+            case CRAFTING:
+                return this.host.getSubInventory(PartExCraftingTerminal.INV_CRAFTING);
+            case SMITHING:
+                return this.host.getSubInventory(PartExCraftingTerminal.INV_SMITHING);
+            case STONECUTTER:
+                return this.host.getSubInventory(PartExCraftingTerminal.INV_STONECUTTING);
+            case ANVIL:
+                return this.host.getSubInventory(PartExCraftingTerminal.INV_ANVIL);
+            default:
+                return null;
+        }
     }
 
     @Override
@@ -522,10 +519,20 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
 
     public void clearToPlayerInventory() {
         switch (this.currentMode) {
-            case CRAFTING -> this.clearToPlayerInventory(PartExCraftingTerminal.INV_CRAFTING);
-            case SMITHING -> this.clearToPlayerInventory(PartExCraftingTerminal.INV_SMITHING);
-            case STONECUTTER -> this.clearToPlayerInventory(PartExCraftingTerminal.INV_STONECUTTING);
-            case ANVIL -> this.clearToPlayerInventory(PartExCraftingTerminal.INV_ANVIL);
+            case CRAFTING:
+                this.clearToPlayerInventory(PartExCraftingTerminal.INV_CRAFTING);
+                break;
+            case SMITHING:
+                this.clearToPlayerInventory(PartExCraftingTerminal.INV_SMITHING);
+                break;
+            case STONECUTTER:
+                this.clearToPlayerInventory(PartExCraftingTerminal.INV_STONECUTTING);
+                break;
+            case ANVIL:
+                this.clearToPlayerInventory(PartExCraftingTerminal.INV_ANVIL);
+                break;
+            default:
+                break;
         }
     }
 
@@ -536,14 +543,12 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
             for (int i = 0; i < craftingGridInv.size(); ++i) {
                 for (int emptyLoop = 0; emptyLoop < 2; ++emptyLoop) {
                     boolean allowEmpty = emptyLoop == 1;
-                    // Hotbar first
                     final int HOTBAR_SIZE = 9;
                     for (int j = HOTBAR_SIZE; j-- > 0;) {
                         if (playerInv.getStackInSlot(j).isEmpty() == allowEmpty) {
                             craftingGridInv.setItemDirect(i, playerInv.getSlotInv(j).addItems(craftingGridInv.getStackInSlot(i)));
                         }
                     }
-                    // Rest of inventory
                     for (int j = HOTBAR_SIZE; j < Inventory.INVENTORY_SIZE; ++j) {
                         if (playerInv.getStackInSlot(j).isEmpty() == allowEmpty) {
                             craftingGridInv.setItemDirect(i, playerInv.getSlotInv(j).addItems(craftingGridInv.getStackInSlot(i)));
@@ -557,22 +562,29 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
 
     public void clearCraftingGrid() {
         switch (this.currentMode) {
-            case CRAFTING -> this.clearCraftingGrid(this.craftingInputSlots[0].index);
-            case SMITHING -> {
+            case CRAFTING:
+                this.clearCraftingGrid(this.craftingInputSlots[0].index);
+                break;
+            case SMITHING:
                 this.clearCraftingGrid(this.smithingInputSlots[0].index);
                 this.clearCraftingGrid(this.smithingInputSlots[1].index);
                 this.clearCraftingGrid(this.smithingInputSlots[2].index);
-            }
-            case STONECUTTER -> this.clearCraftingGrid(this.stonecutterInputSlots[0].index);
-            case ANVIL -> {
+                break;
+            case STONECUTTER:
+                this.clearCraftingGrid(this.stonecutterInputSlots[0].index);
+                break;
+            case ANVIL:
                 this.clearCraftingGrid(this.anvilInputSlots[0].index);
                 this.clearCraftingGrid(this.anvilInputSlots[1].index);
-            }
+                break;
+            default:
+                break;
         }
     }
 
     public void clearCraftingGrid(int slotIndex) {
-        if (this.getPlayer() instanceof ServerPlayer sp) {
+        if (this.getPlayer() instanceof ServerPlayer) {
+            ServerPlayer sp = (ServerPlayer) this.getPlayer();
             this.doAction(sp, InventoryAction.MOVE_REGION, slotIndex, 0);
         } else {
             var p = new InventoryActionPacket(InventoryAction.MOVE_REGION, slotIndex, 0);
@@ -617,7 +629,6 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
             inputSlots = this.anvilInputSlots;
             type = null;
             setOutput = stack -> this.setAnvilOutput();
-            // Always marked changed in anvil mode
             hasChanged = true;
         }
         for (int x = 0; x < 9; x++) {
@@ -666,12 +677,24 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
 
     @Override
     public boolean hasIngredient(Ingredient ingredient, Object2IntOpenHashMap<Object> reservedAmounts) {
-        var slots = switch (this.currentMode) {
-            case CRAFTING -> this.craftingInputSlots;
-            case SMITHING -> this.smithingInputSlots;
-            case STONECUTTER -> this.stonecutterInputSlots;
-            case ANVIL -> this.anvilInputSlots;
-        };
+        CraftingMatrixSlot[] slots;
+        switch (this.currentMode) {
+            case CRAFTING:
+                slots = this.craftingInputSlots;
+                break;
+            case SMITHING:
+                slots = this.smithingInputSlots;
+                break;
+            case STONECUTTER:
+                slots = this.stonecutterInputSlots;
+                break;
+            case ANVIL:
+                slots = this.anvilInputSlots;
+                break;
+            default:
+                slots = new CraftingMatrixSlot[0];
+                break;
+        }
         for (var slot : slots) {
             var stackInSlot = slot.getItem();
             if (!stackInSlot.isEmpty() && ingredient.test(stackInSlot)) {
@@ -686,14 +709,8 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
     }
 
     public CraftingTermMenu.MissingIngredientSlots findMissingIngredients(Map<Integer, Ingredient> ingredients) {
-
-        // Try to figure out if any slots have missing ingredients
-        // Find every "slot" (in JEI parlance) that has no equivalent item in the item repo or player inventory
-        Set<Integer> missingSlots = new HashSet<>(); // missing but not craftable
-        Set<Integer> craftableSlots = new HashSet<>(); // missing but craftable
-        // We need to track how many of a given item stack we've already used for other slots in the recipe.
-        // Otherwise, recipes that need 4x<item> will not correctly show missing items if at least 1 of <item> is in
-        // the grid.
+        Set<Integer> missingSlots = new HashSet<>();
+        Set<Integer> craftableSlots = new HashSet<>();
         var reservedGridAmounts = new Object2IntOpenHashMap<>();
         var playerItems = this.getPlayerInventory().items;
         var reservedPlayerItems = new int[playerItems.size()];
@@ -702,9 +719,7 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
             var ingredient = entry.getValue();
 
             boolean found = false;
-            // Player inventory is cheaper to check
             for (int i = 0; i < playerItems.size(); i++) {
-                // Do not consider locked slots
                 if (isPlayerInventorySlotLocked(i)) {
                     continue;
                 }
@@ -717,16 +732,13 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
                 }
             }
 
-            // Then check the terminal screen's repository of network items
             if (!found) {
-                // We use AE stacks to get an easily comparable item type key that ignores stack size
                 if (hasIngredient(ingredient, reservedGridAmounts)) {
                     reservedGridAmounts.merge(ingredient, 1, Integer::sum);
                     found = true;
                 }
             }
 
-            // Check the terminal once again, but this time for craftable items
             if (!found) {
                 for (var stack : ingredient.getItems()) {
                     if (isCraftable(stack)) {
@@ -757,10 +769,15 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
         return false;
     }
 
-    public record StonecutterRecipeList(List<ResourceLocation> recipes) implements PacketWritable {
+    public static final class StonecutterRecipeList implements PacketWritable {
+        private final List<ResourceLocation> recipes;
 
         public StonecutterRecipeList() {
-            this(new ArrayList<>());
+            this(new ArrayList<ResourceLocation>());
+        }
+
+        public StonecutterRecipeList(List<ResourceLocation> recipes) {
+            this.recipes = recipes;
         }
 
         @SuppressWarnings("unused")
@@ -771,6 +788,10 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
                 size--;
                 this.recipes.add(data.readResourceLocation());
             }
+        }
+
+        public List<ResourceLocation> recipes() {
+            return this.recipes;
         }
 
         @Override
@@ -791,12 +812,11 @@ public class ContainerExCraftingTerminal extends MEStorageMenu implements IMenuC
             if (o == this) {
                 return true;
             }
-            if (o instanceof StonecutterRecipeList that) {
+            if (o instanceof StonecutterRecipeList) {
+                StonecutterRecipeList that = (StonecutterRecipeList) o;
                 return that.recipes.equals(this.recipes);
             }
             return false;
         }
-
     }
-
 }
