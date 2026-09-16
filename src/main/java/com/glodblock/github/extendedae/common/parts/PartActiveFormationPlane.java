@@ -42,6 +42,7 @@ import appeng.util.prioritylist.IPartitionList;
 import com.glodblock.github.extendedae.ExtendedAE;
 import com.glodblock.github.extendedae.container.ContainerActiveFormationPlane;
 import com.google.common.collect.ImmutableList;
+import lombok.var;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -55,12 +56,13 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings("UnstableApiUsage")
 public class PartActiveFormationPlane extends UpgradeablePart implements IGridTickable, IPriorityHost, IConfigInvHost {
 
-    public static final List<ResourceLocation> MODELS = List.of(
+    public static final List<ResourceLocation> MODELS = Arrays.asList(
             ExtendedAE.id("part/active_formation_plane"),
             ExtendedAE.id("part/active_formation_plane_on")
     );
@@ -92,7 +94,6 @@ public class PartActiveFormationPlane extends UpgradeablePart implements IGridTi
 
     protected final PlacementStrategy getPlacementStrategies() {
         if (placementStrategies == null) {
-            // Defer initialization until the grid exists
             var node = getMainNode().getNode();
             if (node == null) {
                 return PlacementStrategy.noop();
@@ -165,7 +166,6 @@ public class PartActiveFormationPlane extends UpgradeablePart implements IGridTi
     @Override
     public void onNeighborChanged(BlockGetter level, BlockPos pos, BlockPos neighbor) {
         if (pos.relative(this.getSide()).equals(neighbor)) {
-            // The neighbor this plane is facing has changed
             if (!isClientSide()) {
                 getPlacementStrategies().clearBlocked();
             }
@@ -304,13 +304,18 @@ public class PartActiveFormationPlane extends UpgradeablePart implements IGridTi
     }
 
     protected long getDropMultiplier() {
-        return switch (getInstalledUpgrades(AEItems.SPEED_CARD)) {
-            case 1 -> 8;
-            case 2 -> 32;
-            case 3 -> 64;
-            case 4 -> 96;
-            default -> 1;
-        };
+        switch (getInstalledUpgrades(AEItems.SPEED_CARD)) {
+            case 1:
+                return 8;
+            case 2:
+                return 32;
+            case 3:
+                return 64;
+            case 4:
+                return 96;
+            default:
+                return 1;
+        }
     }
 
     protected long getExtractAmount(AEKey what) {
