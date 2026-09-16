@@ -23,11 +23,13 @@ import com.glodblock.github.glodium.network.packet.CGenericPacket;
 import com.glodblock.github.glodium.network.packet.sync.IActionHolder;
 import com.glodblock.github.glodium.network.packet.sync.Paras;
 import com.mojang.blaze3d.platform.InputConstants;
+import lombok.var;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
@@ -53,12 +55,23 @@ public class GuiExCraftingTerminal<T extends ContainerExCraftingTerminal> extend
     public GuiExCraftingTerminal(T menu, Inventory playerInventory, Component title, ScreenStyle style) {
         super(menu, playerInventory, title, style);
         for (var mode : CraftingMode.values()) {
-            var panel = switch (mode) {
-                case CRAFTING -> new CraftingPanel(this, this.widgets);
-                case STONECUTTER -> new StonecutterPanel(this, this.widgets);
-                case SMITHING -> new SmithingPanel(this, this.widgets);
-                case ANVIL -> new AnvilPanel(this, this.widgets);
-            };
+            ExPanel panel;
+            switch (mode) {
+                case CRAFTING:
+                    panel = new CraftingPanel(this, this.widgets);
+                    break;
+                case STONECUTTER:
+                    panel = new StonecutterPanel(this, this.widgets);
+                    break;
+                case SMITHING:
+                    panel = new SmithingPanel(this, this.widgets);
+                    break;
+                case ANVIL:
+                    panel = new AnvilPanel(this, this.widgets);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown crafting mode: " + mode);
+            }
             var tabButton = new TabButton(panel.getTabIconItem(), panel.getTabTooltip(), btn -> EPPNetworkHandler.INSTANCE.sendToServer(new CGenericPacket("set_mode", mode.ordinal())));
             tabButton.setStyle(TabButton.Style.HORIZONTAL);
             var modeIndex = modeTabButtons.size();
@@ -142,12 +155,21 @@ public class GuiExCraftingTerminal<T extends ContainerExCraftingTerminal> extend
 
     private void playSound(int index) {
         var mode = CraftingMode.fromOrdinal(index);
-        var sound = switch (mode) {
-            case ANVIL -> SoundEvents.ANVIL_USE;
-            case STONECUTTER -> SoundEvents.UI_STONECUTTER_TAKE_RESULT;
-            case SMITHING -> SoundEvents.SMITHING_TABLE_USE;
-            default -> null;
-        };
+        SoundEvent sound;
+        switch (mode) {
+            case ANVIL:
+                sound = SoundEvents.ANVIL_USE;
+                break;
+            case STONECUTTER:
+                sound = SoundEvents.UI_STONECUTTER_TAKE_RESULT;
+                break;
+            case SMITHING:
+                sound = SoundEvents.SMITHING_TABLE_USE;
+                break;
+            default:
+                sound = null;
+                break;
+        }
         if (sound != null) {
             Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(sound, 1.0F));
         }
