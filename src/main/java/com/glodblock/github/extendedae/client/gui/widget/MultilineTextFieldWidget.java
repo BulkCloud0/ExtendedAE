@@ -1,5 +1,6 @@
 package com.glodblock.github.extendedae.client.gui.widget;
 
+import lombok.var;
 import net.minecraft.Util;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -162,7 +163,6 @@ public class MultilineTextFieldWidget extends AbstractWidget {
     protected void renderWidget(GuiGraphics g, int mX, int mY, float partial) {
         int bg = 0xFF202020, border = isFocused() ? 0xFFFFFFFF : 0xFF808080;
         g.fill(RenderType.guiOverlay(), getX(), getY(), getX() + width, getY() + height, bg);
-        // ramka
         g.fill(RenderType.guiOverlay(), getX(), getY(), getX() + width, getY() + 1, border);
         g.fill(RenderType.guiOverlay(), getX(), getY() + height - 1, getX() + width, getY() + height, border);
         g.fill(RenderType.guiOverlay(), getX(), getY(), getX() + 1, getY() + height, border);
@@ -229,9 +229,11 @@ public class MultilineTextFieldWidget extends AbstractWidget {
         int textH = textField.lineCount() * font.lineHeight;
         return Math.max(textH - (height - 4), 0);
     }
+
     public void setScrollAmount(double a) {
         this.scrollAmount = Mth.clamp(a, 0, getMaxScroll());
     }
+
     private void clampScroll() { setScrollAmount(this.scrollAmount); }
 
     private void ensureCursorVisible() {
@@ -282,35 +284,65 @@ public class MultilineTextFieldWidget extends AbstractWidget {
 
     private boolean blink() { return (Util.getMillis() / 500) % 2 == 0; }
 
-    private record Line(int begin, int end) {}
+    private static final class Line {
+        private final int begin;
+        private final int end;
+
+        private Line(int begin, int end) {
+            this.begin = begin;
+            this.end = end;
+        }
+
+        int begin() { return begin; }
+        int end() { return end; }
+    }
 
     private static final class CachedTextField extends MultilineTextField {
         private List<Line> cache = new ArrayList<>();
-        record Selection(int begin, int end) {}
+
+        private static final class Selection {
+            private final int begin;
+            private final int end;
+
+            private Selection(int begin, int end) {
+                this.begin = begin;
+                this.end = end;
+            }
+
+            int begin() { return begin; }
+            int end() { return end; }
+        }
 
         CachedTextField(Font font, int w) {
             super(font, w);
             rebuild();
         }
 
-        int  lineCount()    { return cache.size(); }
-        Line line(int idx)  { return cache.get(Mth.clamp(idx, 0, cache.size()-1)); }
-        int  lineAtCursor() { return super.getLineAtCursor(); }
+        int lineCount() { return cache.size(); }
+        Line line(int idx) { return cache.get(Mth.clamp(idx, 0, cache.size() - 1)); }
+        int lineAtCursor() { return super.getLineAtCursor(); }
 
         Selection selection() {
             var sv = super.getSelected();
             return new Selection(sv.beginIndex(), sv.endIndex());
         }
 
-        @Override public void setValue(@NotNull String v)   { super.setValue(v);   rebuild(); }
-        @Override public void insertText(@NotNull String t) { super.insertText(t); rebuild(); }
+        @Override
+        public void setValue(@NotNull String v) {
+            super.setValue(v);
+            rebuild();
+        }
+
+        @Override
+        public void insertText(@NotNull String t) {
+            super.insertText(t);
+            rebuild();
+        }
 
         private void rebuild() {
             if (cache == null) cache = new ArrayList<>();
             cache.clear();
-            super.iterateLines().forEach(sv ->
-                    cache.add(new Line(sv.beginIndex(), sv.endIndex()))
-            );
+            super.iterateLines().forEach(sv -> cache.add(new Line(sv.beginIndex(), sv.endIndex())));
         }
     }
 }
