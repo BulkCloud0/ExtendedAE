@@ -27,7 +27,7 @@ public class ExCraftingHelper {
         var recipeId = recipe.getId();
         // Don't transmit a recipe id to the server in case the recipe is not actually resolvable
         // this is the case for recipes synthetically generated for JEI
-        if (menu.getPlayer().level().getRecipeManager().byKey(recipe.getId()).isEmpty()) {
+        if (!menu.getPlayer().level().getRecipeManager().byKey(recipe.getId()).isPresent()) {
             AELog.debug("Cannot send recipe id %s to server because it's transient", recipeId);
             recipeId = null;
         }
