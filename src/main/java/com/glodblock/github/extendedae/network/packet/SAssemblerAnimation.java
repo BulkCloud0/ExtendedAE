@@ -42,7 +42,8 @@ public class SAssemblerAnimation implements IMessage<SAssemblerAnimation> {
     @Override
     public void onMessage(Player player) {
         BlockEntity te = player.getCommandSenderWorld().getBlockEntity(this.pos);
-        if (te instanceof TileExMolecularAssembler ma) {
+        if (te instanceof TileExMolecularAssembler) {
+            TileExMolecularAssembler ma = (TileExMolecularAssembler) te;
             ma.setAnimationStatus(new AssemblerAnimationStatus(this.rate, this.what.wrapForDisplayOrFilter()));
         }
     }

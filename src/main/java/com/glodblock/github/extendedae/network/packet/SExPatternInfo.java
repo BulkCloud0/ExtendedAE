@@ -60,7 +60,8 @@ public class SExPatternInfo implements IMessage<SExPatternInfo> {
 
     @Override
     public void onMessage(Player player) {
-        if (Minecraft.getInstance().screen instanceof GuiExPatternTerminal<?> gui) {
+        if (Minecraft.getInstance().screen instanceof GuiExPatternTerminal) {
+            GuiExPatternTerminal<?> gui = (GuiExPatternTerminal<?>) Minecraft.getInstance().screen;
             gui.postTileInfo(this.id, this.pos, this.dim, this.face);
         }
     }

@@ -35,7 +35,8 @@ public class CUpdatePage implements IMessage<CUpdatePage> {
 
     @Override
     public void onMessage(Player player) {
-        if (player.containerMenu instanceof IPage pg) {
+        if (player.containerMenu instanceof IPage) {
+            IPage pg = (IPage) player.containerMenu;
             pg.setPage(this.page);
         }
     }

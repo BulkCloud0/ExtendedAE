@@ -20,15 +20,14 @@ public class SAssemblerMatrixUpdate implements IMessage<SAssemblerMatrixUpdate> 
 
     public SAssemblerMatrixUpdate(long id, Int2ObjectMap<ItemStack> updateMap) {
         this.patternID = id;
-        // deep clone to prevent CME
-        this.updateMap = new Int2ObjectOpenHashMap<>(updateMap);
+        this.updateMap = new Int2ObjectOpenHashMap<ItemStack>(updateMap);
     }
 
     @Override
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeLong(this.patternID);
         buf.writeInt(this.updateMap.size());
-        for (var entry : this.updateMap.int2ObjectEntrySet()) {
+        for (Int2ObjectMap.Entry<ItemStack> entry : this.updateMap.int2ObjectEntrySet()) {
             buf.writeInt(entry.getIntKey());
             buf.writeItemStack(entry.getValue(), false);
         }
@@ -37,9 +36,9 @@ public class SAssemblerMatrixUpdate implements IMessage<SAssemblerMatrixUpdate> 
     @Override
     public void fromBytes(FriendlyByteBuf buf) {
         this.patternID = buf.readLong();
-        this.updateMap = new Int2ObjectOpenHashMap<>();
+        this.updateMap = new Int2ObjectOpenHashMap<ItemStack>();
         int size = buf.readInt();
-        for (int i = 0; i < size; i ++) {
+        for (int i = 0; i < size; i++) {
             this.updateMap.put(buf.readInt(), buf.readItem());
         }
     }
@@ -51,7 +50,8 @@ public class SAssemblerMatrixUpdate implements IMessage<SAssemblerMatrixUpdate> 
 
     @Override
     public void onMessage(Player player) {
-        if (Minecraft.getInstance().screen instanceof GuiAssemblerMatrix gui) {
+        if (Minecraft.getInstance().screen instanceof GuiAssemblerMatrix) {
+            GuiAssemblerMatrix gui = (GuiAssemblerMatrix) Minecraft.getInstance().screen;
             gui.receiveUpdate(this.patternID, this.updateMap);
         }
     }
@@ -60,5 +60,4 @@ public class SAssemblerMatrixUpdate implements IMessage<SAssemblerMatrixUpdate> 
     public Class<SAssemblerMatrixUpdate> getPacketClass() {
         return SAssemblerMatrixUpdate.class;
     }
-
 }
