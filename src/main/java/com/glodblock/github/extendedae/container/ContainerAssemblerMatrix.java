@@ -20,6 +20,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ReferenceMap;
 import it.unimi.dsi.fastutil.longs.Long2ReferenceOpenHashMap;
+import lombok.var;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.MenuType;
@@ -65,7 +66,8 @@ public class ContainerAssemblerMatrix extends AEBaseMenu implements IActionHolde
         var cluster = this.host.getCluster();
         if (cluster != null && !cluster.isDestroyed()) {
             cluster.getBlockEntities().forEachRemaining(te -> {
-                if (te instanceof TileAssemblerMatrixCrafter crafter) {
+                if (te instanceof TileAssemblerMatrixCrafter) {
+                    TileAssemblerMatrixCrafter crafter = (TileAssemblerMatrixCrafter) te;
                     crafter.stop();
                 }
             });
@@ -112,12 +114,11 @@ public class ContainerAssemblerMatrix extends AEBaseMenu implements IActionHolde
         }
 
         final ItemStack is = inv.server.getStackInSlot(slot);
-
         var patternSlot = new FilteredInternalInventory(inv.server.getSlotInv(slot), new TileAssemblerMatrixPattern.Filter(() -> this.getHost().getLevel()));
-
         var carried = getCarried();
+
         switch (action) {
-            case PICKUP_OR_SET_DOWN -> {
+            case PICKUP_OR_SET_DOWN:
                 if (!carried.isEmpty()) {
                     ItemStack inSlot = patternSlot.getStackInSlot(0);
                     if (inSlot.isEmpty()) {
@@ -128,7 +129,6 @@ public class ContainerAssemblerMatrix extends AEBaseMenu implements IActionHolde
 
                         patternSlot.setItemDirect(0, ItemStack.EMPTY);
                         setCarried(ItemStack.EMPTY);
-
                         setCarried(patternSlot.addItems(inHand.copy()));
 
                         if (getCarried().isEmpty()) {
@@ -142,8 +142,8 @@ public class ContainerAssemblerMatrix extends AEBaseMenu implements IActionHolde
                     setCarried(patternSlot.getStackInSlot(0));
                     patternSlot.setItemDirect(0, ItemStack.EMPTY);
                 }
-            }
-            case SPLIT_OR_PLACE_SINGLE -> {
+                break;
+            case SPLIT_OR_PLACE_SINGLE:
                 if (!carried.isEmpty()) {
                     ItemStack extra = carried.split(1);
                     if (!extra.isEmpty()) {
@@ -155,30 +155,33 @@ public class ContainerAssemblerMatrix extends AEBaseMenu implements IActionHolde
                 } else if (!is.isEmpty()) {
                     setCarried(patternSlot.extractItem(0, (is.getCount() + 1) / 2, false));
                 }
-            }
-            case SHIFT_CLICK -> {
+                break;
+            case SHIFT_CLICK:
                 var stack = patternSlot.getStackInSlot(0).copy();
                 if (!player.getInventory().add(stack)) {
                     patternSlot.setItemDirect(0, stack);
                 } else {
                     patternSlot.setItemDirect(0, ItemStack.EMPTY);
                 }
-            }
-            case MOVE_REGION -> {
+                break;
+            case MOVE_REGION:
                 for (int x = 0; x < inv.server.size(); x++) {
-                    var stack = inv.server.getStackInSlot(x);
-                    if (!player.getInventory().add(stack)) {
-                        patternSlot.setItemDirect(0, stack);
+                    var moveStack = inv.server.getStackInSlot(x);
+                    var moveSlot = new FilteredInternalInventory(inv.server.getSlotInv(x), new TileAssemblerMatrixPattern.Filter(() -> this.getHost().getLevel()));
+                    if (!player.getInventory().add(moveStack)) {
+                        moveSlot.setItemDirect(0, moveStack);
                     } else {
-                        patternSlot.setItemDirect(0, ItemStack.EMPTY);
+                        moveSlot.setItemDirect(0, ItemStack.EMPTY);
                     }
                 }
-            }
-            case CREATIVE_DUPLICATE -> {
+                break;
+            case CREATIVE_DUPLICATE:
                 if (player.getAbilities().instabuild && carried.isEmpty()) {
                     setCarried(is.isEmpty() ? ItemStack.EMPTY : is.copy());
                 }
-            }
+                break;
+            default:
+                break;
         }
     }
 
@@ -188,7 +191,8 @@ public class ContainerAssemblerMatrix extends AEBaseMenu implements IActionHolde
             return;
         }
         super.broadcastChanges();
-        if (this.getPlayer() instanceof ServerPlayer player) {
+        if (this.getPlayer() instanceof ServerPlayer) {
+            ServerPlayer player = (ServerPlayer) this.getPlayer();
             for (var tracker : this.trackers) {
                 if (tracker.init) {
                     var ptk = tracker.createPacket();
@@ -286,7 +290,5 @@ public class ContainerAssemblerMatrix extends AEBaseMenu implements IActionHolde
         public SAssemblerMatrixUpdate fullPacket() {
             return new SAssemblerMatrixUpdate(invHost.getLocateID(), this.getFullMap());
         }
-
     }
-
 }
