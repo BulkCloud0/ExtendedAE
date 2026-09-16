@@ -9,6 +9,7 @@ import appeng.menu.me.common.GridInventoryEntry;
 import appeng.menu.me.common.MEStorageMenu;
 import appeng.util.CraftingRecipeUtil;
 import com.glodblock.github.extendedae.container.ContainerExCraftingTerminal;
+import lombok.var;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
@@ -44,7 +45,7 @@ public class ExCraftingHelper {
                 // player doesn't actually have
                 var stack = ingredientPriorities.entrySet()
                         .stream()
-                        .filter(e -> e.getKey() instanceof AEItemKey itemKey && itemKey.matches(ingredient))
+                        .filter(e -> e.getKey() instanceof AEItemKey && ((AEItemKey) e.getKey()).matches(ingredient))
                         .max(Comparator.comparingInt(Map.Entry::getValue))
                         .map(e -> ((AEItemKey) e.getKey()).toStack())
                         .orElse(ingredient.getItems()[0]);
