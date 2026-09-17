@@ -10,6 +10,7 @@ import appeng.util.inv.AppEngInternalInventory;
 import com.glodblock.github.extendedae.common.EPPItemAndBlock;
 import com.glodblock.github.extendedae.util.Ae2Reflect;
 import com.glodblock.github.glodium.util.GlodUtil;
+import lombok.var;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -34,11 +35,23 @@ public class TileExIOPort extends IOPortBlockEntity {
         long itemsToMove = 2048;
 
         switch (this.getUpgrades().getInstalledUpgrades(AEItems.SPEED_CARD)) {
-            case 1 -> itemsToMove *= 2;
-            case 2 -> itemsToMove *= 8;
-            case 3 -> itemsToMove *= 32;
-            case 4 -> itemsToMove *= 128;
-            case 5 -> itemsToMove *= 512;
+            case 1:
+                itemsToMove *= 2;
+                break;
+            case 2:
+                itemsToMove *= 8;
+                break;
+            case 3:
+                itemsToMove *= 32;
+                break;
+            case 4:
+                itemsToMove *= 128;
+                break;
+            case 5:
+                itemsToMove *= 512;
+                break;
+            default:
+                break;
         }
 
         var grid = getMainNode().getGrid();
@@ -48,7 +61,6 @@ public class TileExIOPort extends IOPortBlockEntity {
 
         for (int x = 0; x < NUMBER_OF_CELL_SLOTS; x++) {
             var cell = this.inputCells.getStackInSlot(x);
-
             var cellInv = StorageCells.getCellInventory(cell, null);
 
             if (cellInv == null) {
@@ -58,7 +70,6 @@ public class TileExIOPort extends IOPortBlockEntity {
 
             if (itemsToMove > 0) {
                 itemsToMove = Ae2Reflect.transferItemsFromCell(this, grid, cellInv, itemsToMove);
-
                 if (itemsToMove > 0) {
                     ret = TickRateModulation.IDLE;
                 } else {
