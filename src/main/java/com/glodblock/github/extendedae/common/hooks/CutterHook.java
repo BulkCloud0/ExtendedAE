@@ -8,6 +8,7 @@ import appeng.menu.locator.MenuLocators;
 import appeng.parts.AEBasePart;
 import appeng.util.InteractionUtil;
 import com.glodblock.github.extendedae.container.ContainerRenamer;
+import lombok.var;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -47,11 +48,13 @@ public final class CutterHook {
             var pos = hitResult.getBlockPos();
             var tile = level.getBlockEntity(pos);
             if (tile instanceof AEBaseBlockEntity) {
-                if (tile instanceof CableBusBlockEntity cable) {
+                if (tile instanceof CableBusBlockEntity) {
+                    CableBusBlockEntity cable = (CableBusBlockEntity) tile;
                     var hitVec = hitResult.getLocation();
                     Vec3 hitInBlock = new Vec3(hitVec.x - pos.getX(), hitVec.y - pos.getY(), hitVec.z - pos.getZ());
                     var part = cable.selectPartLocal(hitInBlock).part;
-                    if (part instanceof AEBasePart p) {
+                    if (part instanceof AEBasePart) {
+                        AEBasePart p = (AEBasePart) part;
                         if (!level.isClientSide) {
                             MenuOpener.open(ContainerRenamer.TYPE, player, MenuLocators.forPart(p));
                         }
