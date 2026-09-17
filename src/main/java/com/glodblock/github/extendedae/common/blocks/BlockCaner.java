@@ -8,6 +8,7 @@ import appeng.menu.MenuOpener;
 import appeng.menu.locator.MenuLocators;
 import com.glodblock.github.extendedae.common.tileentities.TileCaner;
 import com.glodblock.github.extendedae.container.ContainerCaner;
+import lombok.var;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
@@ -97,20 +98,23 @@ public class BlockCaner extends BlockBaseGui<TileCaner> implements SimpleWaterlo
         var bb = new AEAxisAlignedBB(twoPixels, twoPixels, twoPixels, 1.0 - twoPixels, 1.0 - twoPixels, 1.0 - twoPixels);
 
         switch (up) {
-            case UP, DOWN:
+            case UP:
+            case DOWN:
                 bb.maxY = 1.0;
                 bb.minY = 0.0;
                 break;
-            case SOUTH, NORTH:
+            case SOUTH:
+            case NORTH:
                 bb.maxZ = 1.0;
                 bb.minZ = 0.0;
                 break;
-            case WEST, EAST:
+            case WEST:
+            case EAST:
                 bb.minX = 0.0;
                 bb.maxX = 1.0;
                 break;
-            default: {
-            }
+            default:
+                break;
         }
 
         return Shapes.create(bb.getBoundingBox());
