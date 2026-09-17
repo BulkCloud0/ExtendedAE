@@ -9,6 +9,7 @@ import appeng.client.render.effects.LightningArcParticleData;
 import appeng.core.AEConfig;
 import appeng.core.AppEngClient;
 import com.glodblock.github.extendedae.common.tileentities.TileExCharger;
+import lombok.var;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -62,12 +63,8 @@ public class BlockExCharger extends BlockBaseGui<TileExCharger> {
             }
             var rotation = BlockOrientation.get(blockEntity);
             for (int bolts = 0; bolts < 3; bolts++) {
-                // Slightly offset the lightning arc on the x/z plane
                 var xOff = Mth.randomBetween(r, -0.15f, 0.15f);
                 var zOff = Mth.randomBetween(r, -0.15f, 0.15f);
-
-                // Compute two points in the charger block. One at the bottom, and one on the top.
-                // Account for the rotation while doing this.
                 var center = new Vector3f(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f);
                 var origin = new Vector3f(xOff, -0.3f, zOff);
                 origin.rotate(rotation.getQuaternion());
@@ -75,14 +72,11 @@ public class BlockExCharger extends BlockBaseGui<TileExCharger> {
                 var target = new Vector3f(xOff, 0.3f, zOff);
                 target.rotate(rotation.getQuaternion());
                 target.add(center);
-
-                // Split the arcs between arc coming from the top/bottom of the charger since it's symmetrical
                 if (r.nextBoolean()) {
                     var tmp = target;
                     target = origin;
                     origin = tmp;
                 }
-
                 if (AppEngClient.instance().shouldAddParticles(r)) {
                     Minecraft.getInstance().particleEngine.createParticle(
                             new LightningArcParticleData(new Vec3(target)),
@@ -101,25 +95,26 @@ public class BlockExCharger extends BlockBaseGui<TileExCharger> {
         var orientation = getOrientation(state);
         var forward = orientation.getSide(RelativeSide.FRONT);
         var twoPixels = 2.0 / 16.0;
-
-        var bb = new AEAxisAlignedBB(0, 0, 0, 1.0,
-                1.00, 1.0);
+        var bb = new AEAxisAlignedBB(0, 0, 0, 1.0, 1.00, 1.0);
 
         switch (forward) {
-            case UP, DOWN:
+            case UP:
+            case DOWN:
                 bb.maxY = 1.0 - twoPixels;
                 bb.minY = 0.0 + twoPixels;
                 break;
-            case SOUTH, NORTH:
+            case SOUTH:
+            case NORTH:
                 bb.maxZ = 1.0 - twoPixels;
                 bb.minZ = 0.0 + twoPixels;
                 break;
-            case WEST, EAST:
+            case WEST:
+            case EAST:
                 bb.minX = 0.0 + twoPixels;
                 bb.maxX = 1.0 - twoPixels;
                 break;
-            default: {
-            }
+            default:
+                break;
         }
 
         return Shapes.create(bb.getBoundingBox());
