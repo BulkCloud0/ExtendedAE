@@ -5,6 +5,7 @@ import com.glodblock.github.extendedae.ExtendedAE;
 import com.glodblock.github.extendedae.common.EPPItemAndBlock;
 import com.glodblock.github.extendedae.config.EPPConfig;
 import com.mojang.datafixers.util.Pair;
+import lombok.var;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
@@ -40,7 +41,7 @@ public class ItemWirelessAdvancedConnectTool extends Item {
         var connectionsSize = connections.size();
 
         lines.add(Component.translatable("wireless_advanced.mode", Component.translatable(addMode ? "wireless_advanced.mode.add" : "wireless_advanced.mode.use")).withStyle(ChatFormatting.GRAY));
-        lines.add(Component.translatable("wireless.use.tooltip.%s".formatted(addMode ? "01" : "02")).withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable(String.format("wireless.use.tooltip.%s", addMode ? "01" : "02")).withStyle(ChatFormatting.GRAY));
 
         if (connectionsSize > 0) {
             lines.add(Component.empty());
@@ -62,7 +63,7 @@ public class ItemWirelessAdvancedConnectTool extends Item {
             }
 
             if (connectionsSize > 10) {
-                lines.add(Component.nullToEmpty("§7... (%s)".formatted(connectionsSize - 10)));
+                lines.add(Component.nullToEmpty(String.format("§7... (%s)", connectionsSize - 10)));
             }
         }
     }
