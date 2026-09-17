@@ -10,6 +10,7 @@ import com.glodblock.github.extendedae.network.packet.SExPatternInfo;
 import com.glodblock.github.extendedae.util.Ae2Reflect;
 import com.glodblock.github.extendedae.xmod.LoadList;
 import com.glodblock.github.extendedae.xmod.gregtech.MetaTileResolver;
+import lombok.var;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.MenuType;
@@ -37,13 +38,16 @@ public abstract class MixinPatternAccessTermMenu extends AEBaseMenu {
             remap = false
     )
     private void sendTileInfo(IGrid grid, CallbackInfo ci) {
-        if (this.getPlayer() instanceof ServerPlayer player) {
+        if (this.getPlayer() instanceof ServerPlayer) {
+            ServerPlayer player = (ServerPlayer) this.getPlayer();
             for (var inv : diList.values()) {
                 var id = Ae2Reflect.getContainerID(inv);
                 var container = Ae2Reflect.getContainer(inv);
-                if (container instanceof BlockEntity te) {
+                if (container instanceof BlockEntity) {
+                    BlockEntity te = (BlockEntity) container;
                     EPPNetworkHandler.INSTANCE.sendTo(new SExPatternInfo(id, te.getBlockPos(), Objects.requireNonNull(te.getLevel()).dimension()), player);
-                } else if (container instanceof AEBasePart part) {
+                } else if (container instanceof AEBasePart) {
+                    AEBasePart part = (AEBasePart) container;
                     EPPNetworkHandler.INSTANCE.sendTo(new SExPatternInfo(id, part.getBlockEntity().getBlockPos(), Objects.requireNonNull(part.getLevel()).dimension(), part.getSide()), player);
                 } else if (LoadList.GT && MetaTileResolver.check(container)) {
                     EPPNetworkHandler.INSTANCE.sendTo(new SExPatternInfo(id, MetaTileResolver.getBlockPos(container), MetaTileResolver.getLevel(container).dimension()), player);
