@@ -40,6 +40,7 @@ import com.glodblock.github.extendedae.util.recipe.ContainerRecipeContext;
 import com.glodblock.github.extendedae.util.recipe.RecipeExecutor;
 import com.glodblock.github.extendedae.util.recipe.RecipeSearchContext;
 import com.glodblock.github.glodium.util.GlodUtil;
+import lombok.var;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -59,6 +60,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class TileCircuitCutter extends AENetworkPowerBlockEntity implements IGridTickable, IUpgradeableObject, IConfigurableObject, IRecipeMachine<Container, CircuitCutterRecipe> {
 
@@ -349,14 +351,16 @@ public class TileCircuitCutter extends AENetworkPowerBlockEntity implements IGri
                     return false;
                 }
                 copyInv = copyInv.stream().filter(o -> {
-                    if (o instanceof ItemStack s) {
+                    if (o instanceof ItemStack) {
+                        ItemStack s = (ItemStack) o;
                         return !s.isEmpty();
                     }
-                    if (o instanceof FluidStack f) {
+                    if (o instanceof FluidStack) {
+                        FluidStack f = (FluidStack) o;
                         return !f.isEmpty();
                     }
                     return false;
-                }).toList();
+                }).collect(Collectors.toList());
             }
             return true;
         }
@@ -366,7 +370,8 @@ public class TileCircuitCutter extends AENetworkPowerBlockEntity implements IGri
             var sample = recipe.getSample();
             var fluid = this.host.tank.getStack(0);
             FluidStack fluidStack = null;
-            if (fluid != null && fluid.what() instanceof AEFluidKey key) {
+            if (fluid != null && fluid.what() instanceof AEFluidKey) {
+                AEFluidKey key = (AEFluidKey) fluid.what();
                 fluidStack = key.toStack((int) fluid.amount());
             }
             for (var tester : sample) {
@@ -401,7 +406,8 @@ public class TileCircuitCutter extends AENetworkPowerBlockEntity implements IGri
                 }
             }
             var fluid = this.host.tank.getStack(0);
-            if (fluid != null && fluid.what() instanceof AEFluidKey key) {
+            if (fluid != null && fluid.what() instanceof AEFluidKey) {
+                AEFluidKey key = (AEFluidKey) fluid.what();
                 inv.add(key.toStack((int) fluid.amount()));
             }
             return inv;
