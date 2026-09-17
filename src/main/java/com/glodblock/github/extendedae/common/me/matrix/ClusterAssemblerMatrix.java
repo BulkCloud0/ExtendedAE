@@ -18,6 +18,7 @@ import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceSet;
+import lombok.var;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
@@ -201,7 +202,8 @@ public class ClusterAssemblerMatrix implements IAECluster {
         te.setCore(false);
         te.saveChanges();
         this.tiles.add(te);
-        if (te instanceof TileAssemblerMatrixFunction fun) {
+        if (te instanceof TileAssemblerMatrixFunction) {
+            TileAssemblerMatrixFunction fun = (TileAssemblerMatrixFunction) te;
             fun.add(this);
         }
     }
