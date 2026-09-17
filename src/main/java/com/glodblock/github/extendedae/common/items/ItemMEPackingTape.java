@@ -4,6 +4,7 @@ import appeng.blockentity.networking.CableBusBlockEntity;
 import appeng.util.Platform;
 import com.glodblock.github.extendedae.common.EPPItemAndBlock;
 import com.glodblock.github.extendedae.config.EPPConfig;
+import lombok.var;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
@@ -32,7 +33,8 @@ public class ItemMEPackingTape extends Item {
         var player = context.getPlayer();
         if (tile != null && player != null) {
             var tag = new CompoundTag();
-            if (tile instanceof CableBusBlockEntity cable) {
+            if (tile instanceof CableBusBlockEntity) {
+                CableBusBlockEntity cable = (CableBusBlockEntity) tile;
                 Vec3 hitVec = context.getClickLocation();
                 Vec3 hitInBlock = new Vec3(hitVec.x - pos.getX(), hitVec.y - pos.getY(), hitVec.z - pos.getZ());
                 var part = cable.getCableBus().selectPartLocal(hitInBlock).part;
