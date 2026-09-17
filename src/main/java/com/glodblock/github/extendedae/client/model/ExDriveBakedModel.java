@@ -5,6 +5,7 @@ import appeng.client.render.model.DriveModelData;
 import appeng.thirdparty.fabric.MutableQuadView;
 import appeng.thirdparty.fabric.RenderContext;
 import com.mojang.math.Transformation;
+import lombok.var;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
@@ -45,9 +46,6 @@ public class ExDriveBakedModel extends DelegateBakedModel {
      * Calculates the origin of a drive slot for positioning a cell model into it.
      */
     public static void getSlotOrigin(int row, int col, Vector3f translation) {
-        // Position this drive model copy at the correct slot. The transform is based on
-        // the cell-model being in slot 0,0,0 while the upper left slot's origin is at
-        // 9,13,1
         float xOffset = (9 - col * 8) / 16.0f;
         float yOffset = (13 - row * 3) / 16.0f;
         translation.set(xOffset, yOffset, 1 / 16.0f);
@@ -59,14 +57,11 @@ public class ExDriveBakedModel extends DelegateBakedModel {
 
         var cells = extraData.get(DriveModelData.STATE);
 
-        // Add cell models on top of the base model, if possible
         if (cells != null) {
             for (int disk = 0; disk < 2; disk++) {
                 for (int row = 0; row < 5; row++) {
                     for (int col = 0; col < 2; col++) {
                         int slot = getSlotIndex(row, col, disk);
-
-                        // Add the cell chassis
                         Item cell = slot < cells.length ? cells[slot] : null;
                         BakedModel cellChassisModel = getCellChassisModel(cell, disk != 0);
 
@@ -86,13 +81,9 @@ public class ExDriveBakedModel extends DelegateBakedModel {
 
     @Override
     public boolean useAmbientOcclusion() {
-        // We have faces inside the chassis that are facing east, but should not receive
-        // ambient occlusion from the east-side, but sadly this cannot be fine-tuned on
-        // a face-by-face basis.
         return false;
     }
 
-    // Determine which drive chassis to show based on the used cell
     public BakedModel getCellChassisModel(Item cell, boolean invert) {
         if (cell == null) {
             return cellModels.get(Items.AIR);
