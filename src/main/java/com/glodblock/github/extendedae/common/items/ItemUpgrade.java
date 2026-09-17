@@ -6,6 +6,7 @@ import appeng.blockentity.networking.CableBusBlockEntity;
 import appeng.parts.AEBasePart;
 import com.glodblock.github.extendedae.util.FCUtil;
 import com.glodblock.github.glodium.util.GlodUtil;
+import lombok.var;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
@@ -61,11 +62,13 @@ public abstract class ItemUpgrade extends Item {
                 FCUtil.replaceTile(world, pos, tile, te, state);
                 context.getItemInHand().shrink(1);
                 return InteractionResult.CONSUME;
-            } else if (tile instanceof CableBusBlockEntity cable) {
+            } else if (tile instanceof CableBusBlockEntity) {
+                CableBusBlockEntity cable = (CableBusBlockEntity) tile;
                 Vec3 hitVec = context.getClickLocation();
                 Vec3 hitInBlock = new Vec3(hitVec.x - pos.getX(), hitVec.y - pos.getY(), hitVec.z - pos.getZ());
                 var part = cable.getCableBus().selectPartLocal(hitInBlock).part;
-                if (part instanceof AEBasePart basePart && this.PART_MAP.containsKey(part.getClass())) {
+                if (part instanceof AEBasePart && this.PART_MAP.containsKey(part.getClass())) {
+                    AEBasePart basePart = (AEBasePart) part;
                     var side = basePart.getSide();
                     var contents = new CompoundTag();
                     var partItem = this.PART_MAP.get(part.getClass());
@@ -94,8 +97,14 @@ public abstract class ItemUpgrade extends Item {
         this.PART_MAP.put(clazz, item);
     }
 
-    private record TileEntityPair(Block block, Class<? extends BlockEntity> tile) {
+    private static final class TileEntityPair {
+        private final Block block;
+        private final Class<? extends BlockEntity> tile;
 
+        private TileEntityPair(Block block, Class<? extends BlockEntity> tile) {
+            this.block = block;
+            this.tile = tile;
+        }
     }
 
 }
