@@ -18,7 +18,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 
-import java.util.List;
+import java.util.Arrays;
 
 public class ContainerCircuitCutter extends UpgradeableMenu<TileCircuitCutter> implements IProgressProvider {
 
@@ -42,7 +42,7 @@ public class ContainerCircuitCutter extends UpgradeableMenu<TileCircuitCutter> i
         this.addSlot(new AppEngSlot(this.getHost().getInput(), 0), SlotSemantics.MACHINE_INPUT);
         this.addSlot(tank = new AppEngSlot(new ConfigMenuInventory(this.getHost().getTank()), 0), SlotSemantics.STORAGE);
         this.addSlot(new OutputSlot(this.getHost().getOutput(), 0, null), SlotSemantics.MACHINE_OUTPUT);
-        this.tank.setEmptyTooltip(() -> List.of(
+        this.tank.setEmptyTooltip(() -> Arrays.asList(
                 Component.translatable("gui.expatternprovider.tank_empty"),
                 Component.translatable("gui.expatternprovider.tank_amount", 0, TileCircuitCutter.TANK_CAP).withStyle(Tooltips.NORMAL_TOOLTIP_TEXT)
         ));
