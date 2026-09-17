@@ -6,6 +6,7 @@ import appeng.hooks.RenderBlockOutlineHook;
 import appeng.parts.PartPlacement;
 import com.glodblock.github.extendedae.common.items.ItemPackedDevice;
 import com.mojang.blaze3d.vertex.PoseStack;
+import lombok.var;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
@@ -34,7 +35,8 @@ public abstract class MixinRenderBlockOutlineHook {
             remap = false
     )
     private static void renderPackedDevicePreview(Player player, PoseStack poseStack, MultiBufferSource buffers, Camera camera, BlockHitResult blockHitResult, ItemStack itemInHand, boolean insideBlock, CallbackInfo ci) {
-        if (itemInHand.getItem() instanceof ItemPackedDevice packed) {
+        if (itemInHand.getItem() instanceof ItemPackedDevice) {
+            ItemPackedDevice packed = (ItemPackedDevice) itemInHand.getItem();
             var ctx = itemInHand.getTag();
             if (ctx == null) {
                 return;
@@ -43,7 +45,8 @@ public abstract class MixinRenderBlockOutlineHook {
                 var itemO = ForgeRegistries.ITEMS.getHolder(new ResourceLocation(ctx.getString("id")));
                 if (itemO.isPresent()) {
                     var item = itemO.get().get();
-                    if (item instanceof IPartItem<?> partItem) {
+                    if (item instanceof IPartItem<?>) {
+                        IPartItem<?> partItem = (IPartItem<?>) item;
                         var placement = PartPlacement.getPartPlacement(player, player.level(), new ItemStack(partItem), blockHitResult.getBlockPos(), blockHitResult.getDirection(), blockHitResult.getLocation());
                         if (placement != null) {
                             var part = partItem.createPart();
