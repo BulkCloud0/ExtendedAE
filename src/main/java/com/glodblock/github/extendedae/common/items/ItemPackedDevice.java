@@ -7,6 +7,7 @@ import appeng.parts.PartPlacement;
 import appeng.util.Platform;
 import com.glodblock.github.extendedae.util.Ae2Reflect;
 import com.glodblock.github.extendedae.util.FCUtil;
+import lombok.var;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -79,7 +80,8 @@ public class ItemPackedDevice extends AEBaseItem {
             var itemO = ForgeRegistries.ITEMS.getHolder(new ResourceLocation(ctx.getString("id")));
             if (itemO.isPresent()) {
                 var item = itemO.get().get();
-                if (item instanceof IPartItem<?> partItem) {
+                if (item instanceof IPartItem<?>) {
+                    IPartItem<?> partItem = (IPartItem<?>) item;
                     var placement = PartPlacement.getPartPlacement(context.getPlayer(), world, new ItemStack(partItem), pos, side, context.getClickLocation());
                     if (placement != null) {
                         var part = PartPlacement.placePart(context.getPlayer(), world, partItem, null, placement.pos(), placement.side());
@@ -103,7 +105,8 @@ public class ItemPackedDevice extends AEBaseItem {
                 var block = blockO.get().get();
                 var state = NbtUtils.readBlockState(world.holderLookup(Registries.BLOCK), ctx.getCompound("state"));
                 var item = state.getBlock().asItem();
-                if (item instanceof BlockItem blockItem && context.getPlayer() != null) {
+                if (item instanceof BlockItem && context.getPlayer() != null) {
+                    BlockItem blockItem = (BlockItem) item;
                     var ctxB = new BlockPlaceContext(world, context.getPlayer(), context.getHand(), new ItemStack(blockItem), Ae2Reflect.getHitResult(context));
                     ctxB = blockItem.updatePlacementContext(ctxB);
                     if (ctxB != null && blockItem.place(ctxB) != InteractionResult.FAIL) {
@@ -113,7 +116,8 @@ public class ItemPackedDevice extends AEBaseItem {
                             world.setBlock(posNew, state, 3);
                             world.setBlockEntity(te);
                             te.deserializeNBT(ctx.getCompound("ctx"));
-                            if (te instanceof AEBaseBlockEntity aeTile) {
+                            if (te instanceof AEBaseBlockEntity) {
+                                AEBaseBlockEntity aeTile = (AEBaseBlockEntity) te;
                                 aeTile.markForUpdate();
                             } else {
                                 te.setChanged();
