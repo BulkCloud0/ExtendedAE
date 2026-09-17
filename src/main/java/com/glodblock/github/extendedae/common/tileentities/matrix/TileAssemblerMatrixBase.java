@@ -19,6 +19,7 @@ import com.glodblock.github.extendedae.common.EPPItemAndBlock;
 import com.glodblock.github.extendedae.common.blocks.matrix.BlockAssemblerMatrixBase;
 import com.glodblock.github.extendedae.common.me.matrix.CalculatorAssemblerMatrix;
 import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
+import lombok.var;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -97,13 +98,15 @@ public abstract class TileAssemblerMatrixBase extends AENetworkBlockEntity imple
     public void onReady() {
         super.onReady();
         this.getMainNode().setVisualRepresentation(this.getItemFromBlockEntity());
-        if (level instanceof ServerLevel serverLevel) {
+        if (level instanceof ServerLevel) {
+            ServerLevel serverLevel = (ServerLevel) level;
             this.calc.calculateMultiblock(serverLevel, worldPosition);
         }
     }
 
     public void updateMultiBlock(BlockPos changedPos) {
-        if (level instanceof ServerLevel serverLevel) {
+        if (level instanceof ServerLevel) {
+            ServerLevel serverLevel = (ServerLevel) level;
             this.calc.updateMultiblockAfterNeighborUpdate(serverLevel, worldPosition, changedPos);
         }
     }
