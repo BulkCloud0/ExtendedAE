@@ -31,6 +31,7 @@ import com.google.common.collect.HashMultimap;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
+import lombok.var;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.renderer.Rect2i;
@@ -88,22 +89,13 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
      */
     private static final int SLOT_SIZE = ROW_HEIGHT;
 
-    // Bounding boxes of key areas in the UI texture.
-    // The upper part of the UI, anything above the scrollable area (incl. its top border)
     private static final Rect2i HEADER_BBOX = new Rect2i(0, 0, GUI_WIDTH, GUI_HEADER_HEIGHT);
-    // Background for a text row in the scroll-box.
-    // Spans across the whole texture including the right and left borders including the scrollbar.
-    // Covers separate textures for the top, middle and bottoms rows for more customization.
     private static final Rect2i ROW_TEXT_TOP_BBOX = new Rect2i(0, 51, GUI_WIDTH, ROW_HEIGHT);
     private static final Rect2i ROW_TEXT_MIDDLE_BBOX = new Rect2i(0, 87, GUI_WIDTH, ROW_HEIGHT);
     private static final Rect2i ROW_TEXT_BOTTOM_BBOX = new Rect2i(0, 123, GUI_WIDTH, ROW_HEIGHT);
-    // Background for a inventory row in the scroll-box.
-    // Spans across the whole texture including the right and left borders including the scrollbar.
-    // Covers separate textures for the top, middle and bottoms rows for more customization.
     private static final Rect2i ROW_INVENTORY_TOP_BBOX = new Rect2i(0, 69, GUI_WIDTH, ROW_HEIGHT);
     private static final Rect2i ROW_INVENTORY_MIDDLE_BBOX = new Rect2i(0, 105, GUI_WIDTH, ROW_HEIGHT);
     private static final Rect2i ROW_INVENTORY_BOTTOM_BBOX = new Rect2i(0, 141, GUI_WIDTH, ROW_HEIGHT);
-    // This is the lower part of the UI, anything below the scrollable area (incl. its bottom border)
     private static final Rect2i FOOTER_BBOX = new Rect2i(0, 159, GUI_WIDTH, GUI_FOOTER_HEIGHT);
 
     private static final Comparator<PatternContainerGroup> GROUP_COMPARATOR = Comparator
@@ -114,17 +106,14 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
     private final HashMap<Long, PatternContainerRecord> byId = new HashMap<>();
     private final HashMap<Integer, HighlightButton> highlightBtns = new HashMap<>();
     private final HashMap<Long, PatternProviderInfo> infoMap = new HashMap<>();
-    // Used to show multiple pattern providers with the same name under a single header
     private final HashMultimap<PatternContainerGroup, PatternContainerRecord> byGroup = HashMultimap.create();
     private final ArrayList<PatternContainerGroup> groups = new ArrayList<>();
     private final ArrayList<Row> rows = new ArrayList<>();
 
     private final Map<String, Set<Object>> cachedSearches = new WeakHashMap<>();
-    // Cache for decoded pattern search data to avoid repeated pattern.decode() calls
-    // Key is computed from ItemStack item + NBT hash
     private final HashMap<Integer, PatternSearchData> patternSearchCache = new HashMap<>();
     private boolean needsRefresh = false;
-    private final Set<ItemStack> matchedStack = new ObjectOpenCustomHashSet<>(new Hash.Strategy<>() {
+    private final Set<ItemStack> matchedStack = new ObjectOpenCustomHashSet<>(new Hash.Strategy<ItemStack>() {
         @Override
         public int hashCode(ItemStack o) {
             return o.getItem().hashCode() ^ (o.hasTag() ? o.getTag().hashCode() : 0xFFFFFFFF);
@@ -174,10 +163,10 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
         this.searchInField.setPlaceholder(GuiText.SearchPlaceholder.text());
         this.searchInField.setTooltipMessage(Collections.singletonList(Component.translatable("gui.expatternprovider.ex_pattern_access_terminal.tooltip.02")));
         if (menu.isReturnedFromSubScreen() || this.config.isRememberLastSearch()) {
-            if (!lastInputSearch.isBlank()) {
+            if (!lastInputSearch.trim().isEmpty()) {
                 this.searchInField.setValue(lastInputSearch);
             }
-            if (!lastOutputSearch.isBlank()) {
+            if (!lastOutputSearch.trim().isEmpty()) {
                 this.searchOutField.setValue(lastOutputSearch);
             }
         }
@@ -190,26 +179,21 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
         if (this.visibleRows < 2) {
             this.visibleRows = 2;
         }
-        // Render inventory in correct place.
         this.imageHeight = GUI_HEADER_HEIGHT + GUI_FOOTER_HEIGHT + this.visibleRows * ROW_HEIGHT;
 
         super.init();
         this.setInitialFocus(this.searchOutField);
         this.highlightBtns.forEach((k, v) -> {v.setVisibility(false); addRenderableWidget(v);});
-
-        // numLines may have changed, recalculate scroll bar.
         this.resetScrollbar();
     }
 
     @Override
     public void drawFG(GuiGraphics guiGraphics, int offsetX, int offsetY, int mouseX,
                        int mouseY) {
-
         this.menu.slots.removeIf(slot -> slot instanceof PatternSlot);
         this.highlightBtns.forEach((key, value) -> value.setVisibility(false));
 
         int textColor = style.getColor(PaletteColor.DEFAULT_TEXT_COLOR).toARGB();
-
         final int scrollLevel = scrollbar.getCurrentScroll();
         int i = 0;
         for (; i < this.visibleRows; ++i) {
@@ -220,8 +204,8 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
                     btn.setPosition(this.leftPos + GUI_PADDING_X - SLOT_SIZE, this.topPos + (i + 1) * SLOT_SIZE + 34);
                     btn.setVisibility(true);
                 }
-                if (row instanceof SlotsRow slotsRow) {
-                    // Note: We have to shift everything after the header up by 1 to avoid black line duplication.
+                if (row instanceof SlotsRow) {
+                    SlotsRow slotsRow = (SlotsRow) row;
                     var container = slotsRow.container;
                     for (int col = 0; col < slotsRow.slots; col++) {
                         var slot = new PatternSlot(
@@ -238,7 +222,8 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
                             }
                         }
                     }
-                } else if (row instanceof GroupHeaderRow headerRow) {
+                } else if (row instanceof GroupHeaderRow) {
+                    GroupHeaderRow headerRow = (GroupHeaderRow) row;
                     var group = headerRow.group;
                     if (group.icon() != null) {
                         var renderContext = new SimpleRenderContext(LytRect.empty(), guiGraphics);
@@ -251,7 +236,6 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
                     }
 
                     final int rows = this.byGroup.get(group).size();
-
                     FormattedText displayName;
                     if (rows > 1) {
                         displayName = Component.empty()
@@ -273,14 +257,16 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
 
     @Override
     protected void renderTooltip(@NotNull GuiGraphics guiGraphics, int x, int y) {
-        // Draw line tooltip
         if (hoveredSlot == null) {
             var hoveredLineIndex = getHoveredLineIndex(x, y);
             if (hoveredLineIndex != -1) {
                 var row = rows.get(hoveredLineIndex);
-                if (row instanceof GroupHeaderRow headerRow && !headerRow.group.tooltip().isEmpty()) {
-                    guiGraphics.renderTooltip(font, headerRow.group.tooltip(), Optional.empty(), x, y);
-                    return;
+                if (row instanceof GroupHeaderRow) {
+                    GroupHeaderRow headerRow = (GroupHeaderRow) row;
+                    if (!headerRow.group.tooltip().isEmpty()) {
+                        guiGraphics.renderTooltip(font, headerRow.group.tooltip(), Optional.empty(), x, y);
+                        return;
+                    }
                 }
             }
         }
@@ -312,33 +298,31 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
         if (btn == 1 && this.searchInField.isMouseOver(xCoord, yCoord)) {
             this.searchInField.setValue("");
         }
-
         return super.mouseClicked(xCoord, yCoord, btn);
     }
 
     @Override
     protected void slotClicked(Slot slot, int slotIdx, int mouseButton, ClickType clickType) {
-        if (slot instanceof PatternSlot machineSlot) {
+        if (slot instanceof PatternSlot) {
+            PatternSlot machineSlot = (PatternSlot) slot;
             InventoryAction action = null;
 
             switch (clickType) {
-                case PICKUP: // pickup / set-down.
+                case PICKUP:
                     action = mouseButton == 1 ? InventoryAction.SPLIT_OR_PLACE_SINGLE
                             : InventoryAction.PICKUP_OR_SET_DOWN;
                     break;
                 case QUICK_MOVE:
                     action = mouseButton == 1 ? InventoryAction.PICKUP_SINGLE : InventoryAction.SHIFT_CLICK;
                     break;
-
-                case CLONE: // creative dupe:
+                case CLONE:
                     if (getPlayer().getAbilities().instabuild) {
                         action = InventoryAction.CREATIVE_DUPLICATE;
                     }
-
                     break;
-
                 default:
-                case THROW: // drop item:
+                case THROW:
+                    break;
             }
 
             if (action != null) {
@@ -346,7 +330,6 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
                         machineSlot.getMachineInv().getServerId());
                 NetworkHandler.instance().sendToServer(p);
             }
-
             return;
         }
 
@@ -356,35 +339,25 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
     @Override
     public void drawBG(GuiGraphics guiGraphics, int offsetX, int offsetY, int mouseX,
                        int mouseY, float partialTicks) {
-        // Draw the top of the dialog
         blit(guiGraphics, offsetX, offsetY, HEADER_BBOX);
-
         final int scrollLevel = scrollbar.getCurrentScroll();
-
         int currentY = offsetY + GUI_HEADER_HEIGHT;
-
-        // Draw the footer now so slots will draw on top of it
         blit(guiGraphics, offsetX, currentY + this.visibleRows * ROW_HEIGHT, FOOTER_BBOX);
 
         for (int i = 0; i < this.visibleRows; ++i) {
-            // Draw the dialog background for this row
-            // Skip 1 pixel for the first row in order to not over-draw on the top scrollbox border,
-            // and do the same but for the bottom border on the last row
             boolean firstLine = i == 0;
             boolean lastLine = i == this.visibleRows - 1;
-
-            // Draw the background for the slots in an inventory row
             Rect2i bbox = selectRowBackgroundBox(false, firstLine, lastLine);
             blit(guiGraphics, offsetX, currentY, bbox);
             if (scrollLevel + i < this.rows.size()) {
                 var row = this.rows.get(scrollLevel + i);
-                if (row instanceof SlotsRow slotsRow) {
+                if (row instanceof SlotsRow) {
+                    SlotsRow slotsRow = (SlotsRow) row;
                     bbox = selectRowBackgroundBox(true, firstLine, lastLine);
                     bbox.setWidth(GUI_PADDING_X + SLOT_SIZE * slotsRow.slots - 1);
                     blit(guiGraphics, offsetX, currentY, bbox);
                 }
             }
-
             currentY += ROW_HEIGHT;
         }
     }
@@ -418,7 +391,6 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
     public void clear() {
         this.byId.clear();
         this.infoMap.clear();
-        // Invalidate all caches
         this.cachedSearches.clear();
         this.patternSearchCache.clear();
         this.needsRefresh = true;
@@ -443,7 +415,6 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
             inventory.setItemDirect(entry.getIntKey(), entry.getValue());
         }
 
-        // Invalidate caches and mark for deferred refresh
         this.cachedSearches.clear();
         this.needsRefresh = true;
     }
@@ -466,18 +437,12 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
     public void updateBeforeRender() {
         super.updateBeforeRender();
         this.showPatternProviders.set(this.menu.getShownProviders());
-        // Perform deferred refresh - batches multiple updates into a single refresh per frame
         if (this.needsRefresh) {
             this.needsRefresh = false;
             this.refreshList();
         }
     }
 
-    /**
-     * Rebuilds the list of pattern providers.
-     * <p>
-     * Respects a search term if present (ignores case) and adding only matching patterns.
-     */
     private void refreshList() {
         this.byGroup.clear();
         this.highlightBtns.forEach((k, v) -> this.removeWidget(v));
@@ -494,15 +459,11 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
         final boolean rebuild = cachedSearch.isEmpty();
 
         for (PatternContainerRecord entry : this.byId.values()) {
-            // ignore inventory if not doing a full rebuild or cache already marks it as miss.
             if (!rebuild && !cachedSearch.contains(entry)) {
                 continue;
             }
 
-            // Shortcut to skip any filter if search term is ""/empty
             boolean found = outputTokens.isEmpty() && inputTokens.isEmpty();
-
-            // Search if the current inventory holds a pattern containing the search term.
             if (!found) {
                 boolean midRes;
                 for (ItemStack itemStack : entry.getInventory()) {
@@ -522,7 +483,6 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
 
             final var nameToken = FCUtil.tokenize(entry.getSearchName());
             final boolean nameFound = FCUtil.compareTokens(inputTokens, nameToken) && FCUtil.compareTokens(outputTokens, nameToken);
-            // if found, filter skipped or machine name matching the search term, add it
             if (found || nameFound) {
                 this.byGroup.put(entry.getGroup(), entry);
                 cachedSearch.add(entry);
@@ -536,7 +496,6 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
 
         this.groups.clear();
         this.groups.addAll(this.byGroup.keySet());
-
         this.groups.sort(GROUP_COMPARATOR);
 
         this.rows.clear();
@@ -549,7 +508,6 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
             Collections.sort(containers);
             for (var container : containers) {
                 var inventory = container.getInventory();
-                //noinspection SizeReplaceableByIsEmpty
                 if (inventory.size() > 0) {
                     var info = this.infoMap.get(container.getServerId());
                     if (info != null) {
@@ -569,13 +527,11 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
                 }
                 for (var offset = 0; offset < inventory.size(); offset += COLUMNS) {
                     var slots = Math.min(inventory.size() - offset, COLUMNS);
-                    var containerRow = new SlotsRow(container, offset, slots);
-                    this.rows.add(containerRow);
+                    this.rows.add(new SlotsRow(container, offset, slots));
                 }
             }
         }
 
-        // lines may have changed - recalculate scroll bar.
         this.resetScrollbar();
     }
 
@@ -587,11 +543,7 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
         return pos.distSqr(ps);
     }
 
-    /**
-     * Should be called whenever this.lines.size() or this.numLines changes.
-     */
     private void resetScrollbar() {
-        // Needs to take the border into account, so offset for 1 px on the top and bottom.
         scrollbar.setHeight(this.visibleRows * ROW_HEIGHT - 2);
         scrollbar.setRange(0, this.rows.size() - this.visibleRows, 2);
     }
@@ -616,13 +568,8 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
         return false;
     }
 
-    /**
-     * Gets cached pattern search data or computes and caches it.
-     * This avoids expensive pattern.decode() calls on every search keystroke.
-     */
     @Nullable
     private PatternSearchData getOrComputePatternSearchData(ItemStack itemStack) {
-        // Compute stable cache key from item + NBT
         int cacheKey = itemStack.getItem().hashCode();
         if (itemStack.hasTag()) {
             cacheKey = cacheKey * 31 + itemStack.getTag().hashCode();
@@ -632,11 +579,11 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
             return this.patternSearchCache.get(cacheKey);
         }
 
-        // Decode pattern and cache the tokenized names
-        if (!(itemStack.getItem() instanceof EncodedPatternItem pattern)) {
+        if (!(itemStack.getItem() instanceof EncodedPatternItem)) {
             this.patternSearchCache.put(cacheKey, null);
             return null;
         }
+        EncodedPatternItem pattern = (EncodedPatternItem) itemStack.getItem();
 
         IPatternDetails result = pattern.decode(itemStack, this.menu.getPlayer().level(), false);
         if (result == null) {
@@ -644,7 +591,6 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
             return null;
         }
 
-        // Pre-tokenize all output names
         List<List<String>> outputTokens = new ArrayList<>();
         for (var output : result.getOutputs()) {
             if (output != null) {
@@ -652,7 +598,6 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
             }
         }
 
-        // Pre-tokenize all input names
         List<List<String>> inputTokens = new ArrayList<>();
         for (var input : result.getInputs()) {
             if (input != null) {
@@ -668,26 +613,15 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
         return searchData;
     }
 
-    /**
-     * Tries to retrieve a cache for a with search term as keyword.
-     * <p>
-     * If this cache should be empty, it will populate it with an earlier cache if available or at least the cache for
-     * the empty string.
-     *
-     * @param searchTerm the corresponding search
-     * @return a Set matching a superset of the search term
-     */
     private Set<Object> getCacheForSearchTerm(String searchTerm) {
         if (!this.cachedSearches.containsKey(searchTerm)) {
             this.cachedSearches.put(searchTerm, new HashSet<>());
         }
 
         final Set<Object> cache = this.cachedSearches.get(searchTerm);
-
         if (cache.isEmpty() && searchTerm.length() > 1) {
             cache.addAll(this.getCacheForSearchTerm(searchTerm.substring(0, searchTerm.length() - 1)));
         }
-
         return cache;
     }
 
@@ -704,42 +638,74 @@ public class GuiExPatternTerminal<T extends ContainerExPatternTerminal> extends 
         this.reinitialize();
     }
 
-    /**
-     * The max amount of unique names and each inv row. Not affected by the filtering.
-     *
-     * @return max amount of unique names and each inv row
-     */
     private int getMaxRows() {
         return this.groups.size() + this.byId.size();
     }
 
-    /**
-     * A version of blit that lets us pass a source rectangle
-     *
-     * @see GuiGraphics#blit(ResourceLocation, int, int, int, int, int, int)
-     */
     private void blit(GuiGraphics guiGraphics, int offsetX, int offsetY, Rect2i srcRect) {
         var texture = AppEng.makeId("textures/guis/ex_pattern_access_terminal.png");
         guiGraphics.blit(texture, offsetX, offsetY, srcRect.getX(), srcRect.getY(), srcRect.getWidth(), srcRect.getHeight());
     }
 
-    sealed interface Row { }
+    interface Row { }
 
-    /**
-     * A row containing a header for a group.
-     */
-    record GroupHeaderRow(PatternContainerGroup group) implements Row { }
+    static final class GroupHeaderRow implements Row {
+        final PatternContainerGroup group;
 
-    /**
-     * A row containing slots for a subset of a pattern container inventory.
-     */
-    record SlotsRow(PatternContainerRecord container, int offset, int slots) implements Row { }
+        GroupHeaderRow(PatternContainerGroup group) {
+            this.group = group;
+        }
 
-    public record PatternProviderInfo(@Nullable BlockPos pos, @Nullable Direction face, @Nullable ResourceKey<Level> world) { }
+        PatternContainerGroup group() {
+            return group;
+        }
+    }
 
-    /**
-     * Cached search data for a pattern, storing pre-tokenized output and input names.
-     * This avoids expensive pattern.decode() calls on every search keystroke.
-     */
-    record PatternSearchData(List<List<String>> outputTokens, List<List<String>> inputTokens) { }
+    static final class SlotsRow implements Row {
+        final PatternContainerRecord container;
+        final int offset;
+        final int slots;
+
+        SlotsRow(PatternContainerRecord container, int offset, int slots) {
+            this.container = container;
+            this.offset = offset;
+            this.slots = slots;
+        }
+
+        PatternContainerRecord container() { return container; }
+        int offset() { return offset; }
+        int slots() { return slots; }
+    }
+
+    public static final class PatternProviderInfo {
+        @Nullable
+        private final BlockPos pos;
+        @Nullable
+        private final Direction face;
+        @Nullable
+        private final ResourceKey<Level> world;
+
+        public PatternProviderInfo(@Nullable BlockPos pos, @Nullable Direction face, @Nullable ResourceKey<Level> world) {
+            this.pos = pos;
+            this.face = face;
+            this.world = world;
+        }
+
+        @Nullable public BlockPos pos() { return pos; }
+        @Nullable public Direction face() { return face; }
+        @Nullable public ResourceKey<Level> world() { return world; }
+    }
+
+    static final class PatternSearchData {
+        private final List<List<String>> outputTokens;
+        private final List<List<String>> inputTokens;
+
+        PatternSearchData(List<List<String>> outputTokens, List<List<String>> inputTokens) {
+            this.outputTokens = outputTokens;
+            this.inputTokens = inputTokens;
+        }
+
+        List<List<String>> outputTokens() { return outputTokens; }
+        List<List<String>> inputTokens() { return inputTokens; }
+    }
 }
