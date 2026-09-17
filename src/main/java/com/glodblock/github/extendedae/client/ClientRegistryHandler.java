@@ -42,6 +42,7 @@ import com.glodblock.github.extendedae.container.pattern.ContainerStonecuttingPa
 import com.glodblock.github.extendedae.xmod.appliede.APEClientLoad;
 import com.glodblock.github.extendedae.xmod.wt.WTClientLoad;
 import com.glodblock.github.glodium.util.GlodUtil;
+import lombok.var;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraftforge.client.event.ModelEvent;
