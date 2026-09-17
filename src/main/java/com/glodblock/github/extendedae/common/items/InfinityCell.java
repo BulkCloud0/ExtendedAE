@@ -10,6 +10,7 @@ import appeng.items.AEBaseItem;
 import appeng.items.storage.StorageCellTooltipComponent;
 import com.glodblock.github.extendedae.common.EPPItemAndBlock;
 import com.glodblock.github.extendedae.config.EPPConfig;
+import lombok.var;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -72,7 +73,7 @@ public class InfinityCell extends AEBaseItem implements ICellWorkbenchItem {
     @Override
     public Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
         var content = Collections.singletonList(new GenericStack(this.getRecord(stack), getAsIntMax(this.getRecord(stack))));
-        return Optional.of(new StorageCellTooltipComponent(List.of(), content, false, true));
+        return Optional.of(new StorageCellTooltipComponent(Collections.emptyList(), content, false, true));
     }
 
     @Override
