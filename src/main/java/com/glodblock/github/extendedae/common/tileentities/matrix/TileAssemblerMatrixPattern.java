@@ -21,6 +21,7 @@ import appeng.util.inv.filter.IAEItemFilter;
 import com.glodblock.github.extendedae.common.EPPItemAndBlock;
 import com.glodblock.github.extendedae.common.me.matrix.ClusterAssemblerMatrix;
 import com.glodblock.github.glodium.util.GlodUtil;
+import lombok.var;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -30,6 +31,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -150,10 +152,15 @@ public class TileAssemblerMatrixPattern extends TileAssemblerMatrixFunction impl
     @Override
     public PatternContainerGroup getTerminalGroup() {
         var icon = AEItemKey.of(EPPItemAndBlock.ASSEMBLER_MATRIX_PATTERN);
-        return new PatternContainerGroup(icon, icon.getDisplayName(), List.of(Component.translatable("gui.expatternprovider.assembler_matrix.pattern")));
+        return new PatternContainerGroup(icon, icon.getDisplayName(), Collections.singletonList(Component.translatable("gui.expatternprovider.assembler_matrix.pattern")));
     }
 
-    public record Filter(Supplier<Level> world) implements IAEItemFilter {
+    public static final class Filter implements IAEItemFilter {
+        private final Supplier<Level> world;
+
+        public Filter(Supplier<Level> world) {
+            this.world = world;
+        }
 
         @Override
         public boolean allowInsert(InternalInventory inv, int slot, ItemStack stack) {
@@ -162,7 +169,6 @@ public class TileAssemblerMatrixPattern extends TileAssemblerMatrixFunction impl
             }
             return false;
         }
-
     }
 
 }
