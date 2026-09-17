@@ -73,6 +73,7 @@ import com.glodblock.github.extendedae.xmod.mega.MEGACommonLoad;
 import com.glodblock.github.extendedae.xmod.wt.WTCommonLoad;
 import com.glodblock.github.glodium.registry.RegistryHandler;
 import com.glodblock.github.glodium.util.GlodUtil;
+import lombok.var;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -87,6 +88,7 @@ import net.minecraftforge.registries.RegisterEvent;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 public class EAERegistryHandler extends RegistryHandler {
 
@@ -111,7 +113,7 @@ public class EAERegistryHandler extends RegistryHandler {
     }
 
     public Collection<Block> getBlocks() {
-        return this.blocks.stream().map(Pair::getRight).toList();
+        return this.blocks.stream().map(Pair::getRight).collect(Collectors.toList());
     }
 
     private void onRegisterRecipe() {
@@ -288,7 +290,8 @@ public class EAERegistryHandler extends RegistryHandler {
                 .title(Component.translatable("itemGroup.epp"))
                 .displayItems((__, o) -> {
                     for (Pair<String, Item> entry : items) {
-                        if (entry.getRight() instanceof AEBaseItem aeItem) {
+                        if (entry.getRight() instanceof AEBaseItem) {
+                            AEBaseItem aeItem = (AEBaseItem) entry.getRight();
                             aeItem.addToMainCreativeTab(o);
                         } else {
                             o.accept(entry.getRight());
