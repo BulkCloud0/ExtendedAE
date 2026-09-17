@@ -33,6 +33,7 @@ import com.glodblock.github.extendedae.network.EPPNetworkHandler;
 import com.glodblock.github.extendedae.network.packet.SAssemblerAnimation;
 import com.glodblock.github.glodium.network.TargetPoint;
 import com.glodblock.github.glodium.util.GlodUtil;
+import lombok.var;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -50,6 +51,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static appeng.blockentity.crafting.MolecularAssemblerBlockEntity.INV_MAIN;
@@ -127,9 +129,9 @@ public class TileExMolecularAssembler extends AENetworkInvBlockEntity implements
         List<Component> tooltip;
         var accelerationCards = this.getInstalledUpgrades(AEItems.SPEED_CARD);
         if (accelerationCards == 0) {
-            tooltip = List.of();
+            tooltip = Collections.emptyList();
         } else {
-            tooltip = List.of(
+            tooltip = Collections.singletonList(
                     GuiText.CompatibleUpgrade.text(
                             Tooltips.of(AEItems.SPEED_CARD.asItem().getDescription()),
                             Tooltips.ofUnformattedNumber(accelerationCards)));
