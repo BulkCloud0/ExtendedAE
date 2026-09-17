@@ -4,6 +4,7 @@ import appeng.client.gui.Icon;
 import appeng.client.gui.style.Blitter;
 import appeng.client.gui.widgets.IconButton;
 import com.mojang.blaze3d.systems.RenderSystem;
+import lombok.var;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.ItemStack;
 
