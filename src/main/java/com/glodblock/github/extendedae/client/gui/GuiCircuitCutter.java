@@ -11,6 +11,7 @@ import appeng.client.gui.widgets.SettingToggleButton;
 import appeng.core.localization.Tooltips;
 import com.glodblock.github.extendedae.common.tileentities.TileCircuitCutter;
 import com.glodblock.github.extendedae.container.ContainerCircuitCutter;
+import lombok.var;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
