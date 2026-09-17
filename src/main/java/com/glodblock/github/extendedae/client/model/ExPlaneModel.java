@@ -31,13 +31,21 @@ public class ExPlaneModel implements IUnbakedGeometry<ExPlaneModel> {
         return this.delegate.bake(baker, spriteGetter, modelState, modelLocation);
     }
 
-    public record Loader(ResourceLocation frontTexture) implements IGeometryLoader<ExPlaneModel> {
+    public static final class Loader implements IGeometryLoader<ExPlaneModel> {
+        private final ResourceLocation frontTexture;
+
+        public Loader(ResourceLocation frontTexture) {
+            this.frontTexture = frontTexture;
+        }
+
+        public ResourceLocation frontTexture() {
+            return this.frontTexture;
+        }
 
         @Override
         public ExPlaneModel read(JsonObject jsonObject, JsonDeserializationContext deserializationContext) throws JsonParseException {
-            return new ExPlaneModel(frontTexture, AppEng.makeId("part/plane_sides"), AppEng.makeId("part/transition_plane_back"));
+            return new ExPlaneModel(this.frontTexture, AppEng.makeId("part/plane_sides"), AppEng.makeId("part/transition_plane_back"));
         }
-
     }
 
 }
