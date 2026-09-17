@@ -17,6 +17,7 @@ import com.glodblock.github.extendedae.client.button.EPPIcon;
 import com.glodblock.github.extendedae.container.ContainerExInterface;
 import com.glodblock.github.extendedae.network.EPPNetworkHandler;
 import com.glodblock.github.extendedae.network.packet.CUpdatePage;
+import lombok.var;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
