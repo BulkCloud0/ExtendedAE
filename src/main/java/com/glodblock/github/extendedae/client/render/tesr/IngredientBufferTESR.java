@@ -5,6 +5,7 @@ import com.glodblock.github.extendedae.common.tileentities.TileIngredientBuffer;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import lombok.var;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -31,13 +32,16 @@ public class IngredientBufferTESR implements BlockEntityRenderer<TileIngredientB
         var inv = tile.getInventory();
         for (int i = 0; i < inv.size(); i++) {
             var stack = inv.getStack(i);
-            if (stack != null && stack.what() instanceof AEItemKey itemKey && !itemKey.toStack().isEmpty()) {
-                matrixStackIn.pushPose();
-                matrixStackIn.translate(0.5D, 0.25D, 0.5D);
-                var itemStack = itemKey.toStack();
-                itemRenderer.renderStatic(itemStack, ItemDisplayContext.GROUND, combinedLight, OverlayTexture.NO_OVERLAY, matrixStackIn, buffers, tile.getLevel(), 0);
-                matrixStackIn.popPose();
-                break;
+            if (stack != null && stack.what() instanceof AEItemKey) {
+                AEItemKey itemKey = (AEItemKey) stack.what();
+                if (!itemKey.toStack().isEmpty()) {
+                    matrixStackIn.pushPose();
+                    matrixStackIn.translate(0.5D, 0.25D, 0.5D);
+                    var itemStack = itemKey.toStack();
+                    itemRenderer.renderStatic(itemStack, ItemDisplayContext.GROUND, combinedLight, OverlayTexture.NO_OVERLAY, matrixStackIn, buffers, tile.getLevel(), 0);
+                    matrixStackIn.popPose();
+                    break;
+                }
             }
         }
         RenderSystem.disableBlend();
