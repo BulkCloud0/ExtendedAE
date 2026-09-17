@@ -26,6 +26,7 @@ import appeng.util.inv.filter.IAEItemFilter;
 import com.glodblock.github.extendedae.common.EPPItemAndBlock;
 import com.glodblock.github.extendedae.common.me.Crankable;
 import com.glodblock.github.glodium.util.GlodUtil;
+import lombok.var;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
@@ -38,8 +39,8 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -120,9 +121,6 @@ public class TileExCharger extends AENetworkPowerBlockEntity implements IGridTic
         return working;
     }
 
-    /**
-     * Allow cranking from the top or bottom.
-     */
     @Nullable
     public ICrankable getCrankable(Direction direction) {
         if (direction != getFront()) {
@@ -147,8 +145,7 @@ public class TileExCharger extends AENetworkPowerBlockEntity implements IGridTic
                     var maxPower = ps.getAEMaxPower(myItem);
                     if (currentPower < maxPower) {
                         var chargeRate = ps.getChargeRate(myItem) * ticksSinceLastCall * AEConfig.instance().getChargerChargeRate();
-                        double extractedAmount = this.extractAEPower(chargeRate, Actionable.MODULATE,
-                                PowerMultiplier.CONFIG);
+                        double extractedAmount = this.extractAEPower(chargeRate, Actionable.MODULATE, PowerMultiplier.CONFIG);
                         var missingChargeRate = chargeRate - extractedAmount;
                         var missingAEPower = maxPower - currentPower;
                         var toExtract = Math.min(missingChargeRate, missingAEPower);
@@ -179,7 +176,6 @@ public class TileExCharger extends AENetworkPowerBlockEntity implements IGridTic
                     double toExtract = Math.min(800.0, this.getInternalMaxPower() - this.getInternalCurrentPower());
                     final double extracted = grid.getEnergyService().extractAEPower(toExtract, Actionable.MODULATE,
                             PowerMultiplier.ONE);
-
                     this.injectExternalPower(PowerUnits.AE, extracted, Actionable.MODULATE);
                 });
                 changed = true;
@@ -220,9 +216,8 @@ public class TileExCharger extends AENetworkPowerBlockEntity implements IGridTic
         for (int x = 0; x < MAX_THREAD; x ++) {
             var stored = this.inv.getStackInSlot(x);
             if (!stored.isEmpty()) {
-                var drops = List.of(stored);
                 this.inv.setItemDirect(x, ItemStack.EMPTY);
-                Platform.spawnDrops(player.level(), this.worldPosition.relative(this.getFront()), drops);
+                Platform.spawnDrops(player.level(), this.worldPosition.relative(this.getFront()), Collections.singletonList(stored));
                 return;
             }
         }
@@ -242,7 +237,12 @@ public class TileExCharger extends AENetworkPowerBlockEntity implements IGridTic
         return super.getCapability(capability, facing);
     }
 
-    private record ChargerInvFilter(TileExCharger chargerBlockEntity) implements IAEItemFilter {
+    private static final class ChargerInvFilter implements IAEItemFilter {
+        private final TileExCharger chargerBlockEntity;
+
+        private ChargerInvFilter(TileExCharger chargerBlockEntity) {
+            this.chargerBlockEntity = chargerBlockEntity;
+        }
 
         @Override
         public boolean allowInsert(InternalInventory inv, int i, ItemStack itemstack) {
