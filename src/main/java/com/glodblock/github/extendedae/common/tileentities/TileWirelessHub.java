@@ -20,6 +20,7 @@ import com.glodblock.github.extendedae.util.CacheHolder;
 import com.glodblock.github.extendedae.xmod.jade.JadeDataProvider;
 import com.glodblock.github.glodium.util.GlodUtil;
 import gripe._90.megacells.definition.MEGAItems;
+import lombok.var;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
@@ -277,7 +278,14 @@ public class TileWirelessHub extends AENetworkBlockEntity implements ServerTicki
         this.getMainNode().ifPresent((gird, node) -> tag.putInt("used", node.getUsedChannels()));
     }
 
-    private record Stock(TileWirelessHub hub, int port) implements WirelessNode {
+    private static final class Stock implements WirelessNode {
+        private final TileWirelessHub hub;
+        private final int port;
+
+        private Stock(TileWirelessHub hub, int port) {
+            this.hub = hub;
+            this.port = port;
+        }
 
         @Override
         public long getFrequency() {
@@ -303,7 +311,6 @@ public class TileWirelessHub extends AENetworkBlockEntity implements ServerTicki
         public BlockEntity getBlockEntity() {
             return this.hub;
         }
-
     }
 
 }
