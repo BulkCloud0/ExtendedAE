@@ -5,6 +5,7 @@ import com.glodblock.github.extendedae.common.blocks.matrix.BlockAssemblerMatrix
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
+import lombok.var;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
@@ -31,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 public class AssemblerGlassBakedModel implements IDynamicBakedModel {
@@ -138,70 +140,72 @@ public class AssemblerGlassBakedModel implements IDynamicBakedModel {
         float v0 = this.getV0(index);
         float v1 = this.getV1(index);
         switch (corner) {
-            case LU -> {
+            case LU:
                 this.putVertex(builder, this.glassSide, normal, c1.x(), c1.y(), c1.z(), u0, v0);
                 this.putVertex(builder, this.glassSide, normal, c2.x(), c2.y(), c2.z(), u0, v1);
                 this.putVertex(builder, this.glassSide, normal, c3.x(), c3.y(), c3.z(), u1, v1);
                 this.putVertex(builder, this.glassSide, normal, c4.x(), c4.y(), c4.z(), u1, v0);
-            }
-            case RU -> {
+                break;
+            case RU:
                 this.putVertex(builder, this.glassSide, normal, c1.x(), c1.y(), c1.z(), u1, v0);
                 this.putVertex(builder, this.glassSide, normal, c2.x(), c2.y(), c2.z(), u1, v1);
                 this.putVertex(builder, this.glassSide, normal, c3.x(), c3.y(), c3.z(), u0, v1);
                 this.putVertex(builder, this.glassSide, normal, c4.x(), c4.y(), c4.z(), u0, v0);
-            }
-            case LD -> {
+                break;
+            case LD:
                 this.putVertex(builder, this.glassSide, normal, c1.x(), c1.y(), c1.z(), u0, v1);
                 this.putVertex(builder, this.glassSide, normal, c2.x(), c2.y(), c2.z(), u0, v0);
                 this.putVertex(builder, this.glassSide, normal, c3.x(), c3.y(), c3.z(), u1, v0);
                 this.putVertex(builder, this.glassSide, normal, c4.x(), c4.y(), c4.z(), u1, v1);
-            }
-            case RD -> {
+                break;
+            case RD:
                 this.putVertex(builder, this.glassSide, normal, c1.x(), c1.y(), c1.z(), u1, v1);
                 this.putVertex(builder, this.glassSide, normal, c2.x(), c2.y(), c2.z(), u1, v0);
                 this.putVertex(builder, this.glassSide, normal, c3.x(), c3.y(), c3.z(), u0, v0);
                 this.putVertex(builder, this.glassSide, normal, c4.x(), c4.y(), c4.z(), u0, v1);
-            }
+                break;
+            default:
+                break;
         }
     }
 
     private static EnumMap<Direction, List<Vector3f>> createFaceMap() {
         EnumMap<Direction, List<Vector3f>> map = new EnumMap<>(Direction.class);
-        map.put(Direction.EAST, List.of(new Vector3f(1, 1, 1), new Vector3f(1, 0, 1), new Vector3f(1, 0, 0), new Vector3f(1, 1, 0)));
-        map.put(Direction.WEST, Lists.reverse(List.of(new Vector3f(0, 1, 1), new Vector3f(0, 0, 1), new Vector3f(0, 0, 0), new Vector3f(0, 1, 0))));
-        map.put(Direction.UP, List.of(new Vector3f(1, 1, 1), new Vector3f(1, 1, 0), new Vector3f(0, 1, 0), new Vector3f(0, 1, 1)));
-        map.put(Direction.DOWN, Lists.reverse(List.of(new Vector3f(1, 0, 1), new Vector3f(1, 0, 0), new Vector3f(0, 0, 0), new Vector3f(0, 0, 1))));
-        map.put(Direction.SOUTH, List.of(new Vector3f(0, 1, 1), new Vector3f(0, 0, 1), new Vector3f(1, 0, 1), new Vector3f(1, 1, 1)));
-        map.put(Direction.NORTH, Lists.reverse(List.of(new Vector3f(0, 1, 0), new Vector3f(0, 0, 0), new Vector3f(1, 0, 0), new Vector3f(1, 1, 0))));
+        map.put(Direction.EAST, Arrays.asList(new Vector3f(1, 1, 1), new Vector3f(1, 0, 1), new Vector3f(1, 0, 0), new Vector3f(1, 1, 0)));
+        map.put(Direction.WEST, Lists.reverse(Arrays.asList(new Vector3f(0, 1, 1), new Vector3f(0, 0, 1), new Vector3f(0, 0, 0), new Vector3f(0, 1, 0))));
+        map.put(Direction.UP, Arrays.asList(new Vector3f(1, 1, 1), new Vector3f(1, 1, 0), new Vector3f(0, 1, 0), new Vector3f(0, 1, 1)));
+        map.put(Direction.DOWN, Lists.reverse(Arrays.asList(new Vector3f(1, 0, 1), new Vector3f(1, 0, 0), new Vector3f(0, 0, 0), new Vector3f(0, 0, 1))));
+        map.put(Direction.SOUTH, Arrays.asList(new Vector3f(0, 1, 1), new Vector3f(0, 0, 1), new Vector3f(1, 0, 1), new Vector3f(1, 1, 1)));
+        map.put(Direction.NORTH, Lists.reverse(Arrays.asList(new Vector3f(0, 1, 0), new Vector3f(0, 0, 0), new Vector3f(1, 0, 0), new Vector3f(1, 1, 0))));
         return map;
     }
 
     private static Object2ReferenceMap<FaceCorner, List<Vector3f>> createVertexMap() {
         Object2ReferenceMap<FaceCorner, List<Vector3f>> map = new Object2ReferenceOpenHashMap<>();
-        map.put(new FaceCorner(Direction.EAST, LU), List.of(new Vector3f(1, 1, 1), new Vector3f(1, 0.5f, 1), new Vector3f(1, 0.5f, 0.5f), new Vector3f(1, 1, 0.5f)));
-        map.put(new FaceCorner(Direction.EAST, RU), List.of(new Vector3f(1, 1, 0.5f), new Vector3f(1, 0.5f, 0.5f), new Vector3f(1, 0.5f, 0), new Vector3f(1, 1, 0)));
-        map.put(new FaceCorner(Direction.EAST, LD), List.of(new Vector3f(1, 0.5f, 1), new Vector3f(1, 0, 1), new Vector3f(1, 0, 0.5f), new Vector3f(1, 0.5f, 0.5f)));
-        map.put(new FaceCorner(Direction.EAST, RD), List.of(new Vector3f(1, 0.5f, 0.5f), new Vector3f(1, 0, 0.5f), new Vector3f(1, 0, 0), new Vector3f(1, 0.5f, 0)));
-        map.put(new FaceCorner(Direction.WEST, LU), List.of(new Vector3f(0, 1, 0), new Vector3f(0, 0.5f, 0), new Vector3f(0, 0.5f, 0.5f), new Vector3f(0, 1, 0.5f)));
-        map.put(new FaceCorner(Direction.WEST, RU), List.of(new Vector3f(0, 1, 0.5f), new Vector3f(0, 0.5f, 0.5f), new Vector3f(0, 0.5f, 1), new Vector3f(0, 1, 1)));
-        map.put(new FaceCorner(Direction.WEST, LD), List.of(new Vector3f(0, 0.5f, 0), new Vector3f(0, 0, 0), new Vector3f(0, 0, 0.5f), new Vector3f(0, 0.5f, 0.5f)));
-        map.put(new FaceCorner(Direction.WEST, RD), List.of(new Vector3f(0, 0.5f, 0.5f), new Vector3f(0, 0, 0.5f), new Vector3f(0, 0, 1), new Vector3f(0, 0.5f, 1)));
-        map.put(new FaceCorner(Direction.SOUTH, LU), List.of(new Vector3f(0, 1, 1), new Vector3f(0, 0.5f, 1), new Vector3f(0.5f, 0.5f, 1), new Vector3f(0.5f, 1, 1)));
-        map.put(new FaceCorner(Direction.SOUTH, RU), List.of(new Vector3f(0.5f, 1, 1), new Vector3f(0.5f, 0.5f, 1), new Vector3f(1, 0.5f, 1), new Vector3f(1, 1, 1)));
-        map.put(new FaceCorner(Direction.SOUTH, LD), List.of(new Vector3f(0, 0.5f, 1), new Vector3f(0, 0, 1), new Vector3f(0.5f, 0, 1), new Vector3f(0.5f, 0.5f, 1)));
-        map.put(new FaceCorner(Direction.SOUTH, RD), List.of(new Vector3f(0.5f, 0.5f, 1), new Vector3f(0.5f, 0, 1), new Vector3f(1, 0, 1), new Vector3f(1, 0.5f, 1)));
-        map.put(new FaceCorner(Direction.NORTH, LU), List.of(new Vector3f(1, 1, 0), new Vector3f(1, 0.5f, 0), new Vector3f(0.5f, 0.5f, 0), new Vector3f(0.5f, 1, 0)));
-        map.put(new FaceCorner(Direction.NORTH, RU), List.of(new Vector3f(0.5f, 1, 0), new Vector3f(0.5f, 0.5f, 0), new Vector3f(0, 0.5f, 0), new Vector3f(0, 1, 0)));
-        map.put(new FaceCorner(Direction.NORTH, LD), List.of(new Vector3f(1, 0.5f, 0), new Vector3f(1, 0, 0), new Vector3f(0.5f, 0, 0), new Vector3f(0.5f, 0.5f, 0)));
-        map.put(new FaceCorner(Direction.NORTH, RD), List.of(new Vector3f(0.5f, 0.5f, 0), new Vector3f(0.5f, 0, 0), new Vector3f(0, 0, 0), new Vector3f(0, 0.5f, 0)));
-        map.put(new FaceCorner(Direction.UP, LU), List.of(new Vector3f(0, 1, 1), new Vector3f(0.5f, 1, 1), new Vector3f(0.5f, 1, 0.5f), new Vector3f(0, 1, 0.5f)));
-        map.put(new FaceCorner(Direction.UP, RU), List.of(new Vector3f(0, 1, 0.5f), new Vector3f(0.5f, 1, 0.5f), new Vector3f(0.5f, 1, 0), new Vector3f(0, 1, 0)));
-        map.put(new FaceCorner(Direction.UP, LD), List.of(new Vector3f(0.5f, 1, 1), new Vector3f(1, 1, 1), new Vector3f(1, 1, 0.5f), new Vector3f(0.5f, 1, 0.5f)));
-        map.put(new FaceCorner(Direction.UP, RD), List.of(new Vector3f(0.5f, 1, 0.5f), new Vector3f(1, 1, 0.5f), new Vector3f(1, 1, 0), new Vector3f(0.5f, 1, 0)));
-        map.put(new FaceCorner(Direction.DOWN, LU), List.of(new Vector3f(1, 0, 1), new Vector3f(0.5f, 0, 1), new Vector3f(0.5f, 0, 0.5f), new Vector3f(1, 0, 0.5f)));
-        map.put(new FaceCorner(Direction.DOWN, RU), List.of(new Vector3f(1, 0, 0.5f), new Vector3f(0.5f, 0, 0.5f), new Vector3f(0.5f, 0, 0), new Vector3f(1, 0, 0)));
-        map.put(new FaceCorner(Direction.DOWN, LD), List.of(new Vector3f(0.5f, 0, 1), new Vector3f(0, 0, 1), new Vector3f(0, 0, 0.5f), new Vector3f(0.5f, 0, 0.5f)));
-        map.put(new FaceCorner(Direction.DOWN, RD), List.of(new Vector3f(0.5f, 0, 0.5f), new Vector3f(0, 0, 0.5f), new Vector3f(0, 0, 0), new Vector3f(0.5f, 0, 0)));
+        map.put(new FaceCorner(Direction.EAST, LU), Arrays.asList(new Vector3f(1, 1, 1), new Vector3f(1, 0.5f, 1), new Vector3f(1, 0.5f, 0.5f), new Vector3f(1, 1, 0.5f)));
+        map.put(new FaceCorner(Direction.EAST, RU), Arrays.asList(new Vector3f(1, 1, 0.5f), new Vector3f(1, 0.5f, 0.5f), new Vector3f(1, 0.5f, 0), new Vector3f(1, 1, 0)));
+        map.put(new FaceCorner(Direction.EAST, LD), Arrays.asList(new Vector3f(1, 0.5f, 1), new Vector3f(1, 0, 1), new Vector3f(1, 0, 0.5f), new Vector3f(1, 0.5f, 0.5f)));
+        map.put(new FaceCorner(Direction.EAST, RD), Arrays.asList(new Vector3f(1, 0.5f, 0.5f), new Vector3f(1, 0, 0.5f), new Vector3f(1, 0, 0), new Vector3f(1, 0.5f, 0)));
+        map.put(new FaceCorner(Direction.WEST, LU), Arrays.asList(new Vector3f(0, 1, 0), new Vector3f(0, 0.5f, 0), new Vector3f(0, 0.5f, 0.5f), new Vector3f(0, 1, 0.5f)));
+        map.put(new FaceCorner(Direction.WEST, RU), Arrays.asList(new Vector3f(0, 1, 0.5f), new Vector3f(0, 0.5f, 0.5f), new Vector3f(0, 0.5f, 1), new Vector3f(0, 1, 1)));
+        map.put(new FaceCorner(Direction.WEST, LD), Arrays.asList(new Vector3f(0, 0.5f, 0), new Vector3f(0, 0, 0), new Vector3f(0, 0, 0.5f), new Vector3f(0, 0.5f, 0.5f)));
+        map.put(new FaceCorner(Direction.WEST, RD), Arrays.asList(new Vector3f(0, 0.5f, 0.5f), new Vector3f(0, 0, 0.5f), new Vector3f(0, 0, 1), new Vector3f(0, 0.5f, 1)));
+        map.put(new FaceCorner(Direction.SOUTH, LU), Arrays.asList(new Vector3f(0, 1, 1), new Vector3f(0, 0.5f, 1), new Vector3f(0.5f, 0.5f, 1), new Vector3f(0.5f, 1, 1)));
+        map.put(new FaceCorner(Direction.SOUTH, RU), Arrays.asList(new Vector3f(0.5f, 1, 1), new Vector3f(0.5f, 0.5f, 1), new Vector3f(1, 0.5f, 1), new Vector3f(1, 1, 1)));
+        map.put(new FaceCorner(Direction.SOUTH, LD), Arrays.asList(new Vector3f(0, 0.5f, 1), new Vector3f(0, 0, 1), new Vector3f(0.5f, 0, 1), new Vector3f(0.5f, 0.5f, 1)));
+        map.put(new FaceCorner(Direction.SOUTH, RD), Arrays.asList(new Vector3f(0.5f, 0.5f, 1), new Vector3f(0.5f, 0, 1), new Vector3f(1, 0, 1), new Vector3f(1, 0.5f, 1)));
+        map.put(new FaceCorner(Direction.NORTH, LU), Arrays.asList(new Vector3f(1, 1, 0), new Vector3f(1, 0.5f, 0), new Vector3f(0.5f, 0.5f, 0), new Vector3f(0.5f, 1, 0)));
+        map.put(new FaceCorner(Direction.NORTH, RU), Arrays.asList(new Vector3f(0.5f, 1, 0), new Vector3f(0.5f, 0.5f, 0), new Vector3f(0, 0.5f, 0), new Vector3f(0, 1, 0)));
+        map.put(new FaceCorner(Direction.NORTH, LD), Arrays.asList(new Vector3f(1, 0.5f, 0), new Vector3f(1, 0, 0), new Vector3f(0.5f, 0, 0), new Vector3f(0.5f, 0.5f, 0)));
+        map.put(new FaceCorner(Direction.NORTH, RD), Arrays.asList(new Vector3f(0.5f, 0.5f, 0), new Vector3f(0.5f, 0, 0), new Vector3f(0, 0, 0), new Vector3f(0, 0.5f, 0)));
+        map.put(new FaceCorner(Direction.UP, LU), Arrays.asList(new Vector3f(0, 1, 1), new Vector3f(0.5f, 1, 1), new Vector3f(0.5f, 1, 0.5f), new Vector3f(0, 1, 0.5f)));
+        map.put(new FaceCorner(Direction.UP, RU), Arrays.asList(new Vector3f(0, 1, 0.5f), new Vector3f(0.5f, 1, 0.5f), new Vector3f(0.5f, 1, 0), new Vector3f(0, 1, 0)));
+        map.put(new FaceCorner(Direction.UP, LD), Arrays.asList(new Vector3f(0.5f, 1, 1), new Vector3f(1, 1, 1), new Vector3f(1, 1, 0.5f), new Vector3f(0.5f, 1, 0.5f)));
+        map.put(new FaceCorner(Direction.UP, RD), Arrays.asList(new Vector3f(0.5f, 1, 0.5f), new Vector3f(1, 1, 0.5f), new Vector3f(1, 1, 0), new Vector3f(0.5f, 1, 0)));
+        map.put(new FaceCorner(Direction.DOWN, LU), Arrays.asList(new Vector3f(1, 0, 1), new Vector3f(0.5f, 0, 1), new Vector3f(0.5f, 0, 0.5f), new Vector3f(1, 0, 0.5f)));
+        map.put(new FaceCorner(Direction.DOWN, RU), Arrays.asList(new Vector3f(1, 0, 0.5f), new Vector3f(0.5f, 0, 0.5f), new Vector3f(0.5f, 0, 0), new Vector3f(1, 0, 0)));
+        map.put(new FaceCorner(Direction.DOWN, LD), Arrays.asList(new Vector3f(0.5f, 0, 1), new Vector3f(0, 0, 1), new Vector3f(0, 0, 0.5f), new Vector3f(0.5f, 0, 0.5f)));
+        map.put(new FaceCorner(Direction.DOWN, RD), Arrays.asList(new Vector3f(0.5f, 0, 0.5f), new Vector3f(0, 0, 0.5f), new Vector3f(0, 0, 0), new Vector3f(0.5f, 0, 0)));
         return map;
     }
 
@@ -216,31 +220,19 @@ public class AssemblerGlassBakedModel implements IDynamicBakedModel {
     }
 
     private float getU0(int index) {
-        return switch (index) {
-            case 1, 3 -> 8;
-            default -> 0;
-        };
+        return index == 1 || index == 3 ? 8 : 0;
     }
 
     private float getU1(int index) {
-        return switch (index) {
-            case 1, 3 -> 16;
-            default -> 8;
-        };
+        return index == 1 || index == 3 ? 16 : 8;
     }
 
     private float getV0(int index) {
-        return switch (index) {
-            case 2, 3 -> 8;
-            default -> 0;
-        };
+        return index == 2 || index == 3 ? 8 : 0;
     }
 
     private float getV1(int index) {
-        return switch (index) {
-            case 2, 3 -> 16;
-            default -> 8;
-        };
+        return index == 2 || index == 3 ? 16 : 8;
     }
 
     @Override
@@ -302,17 +294,19 @@ public class AssemblerGlassBakedModel implements IDynamicBakedModel {
             if (!validCheck(face)) {
                 return -1;
             }
-            return switch (face) {
-                case WEST, EAST: {
-                    yield getIndexX(face, corner);
-                }
-                case DOWN, UP: {
-                    yield getIndexY(face, corner);
-                }
-                case NORTH, SOUTH: {
-                    yield getIndexZ(face, corner);
-                }
-            };
+            switch (face) {
+                case WEST:
+                case EAST:
+                    return getIndexX(face, corner);
+                case DOWN:
+                case UP:
+                    return getIndexY(face, corner);
+                case NORTH:
+                case SOUTH:
+                    return getIndexZ(face, corner);
+                default:
+                    return -1;
+            }
         }
 
         boolean validCheck(Direction face) {
@@ -322,35 +316,35 @@ public class AssemblerGlassBakedModel implements IDynamicBakedModel {
 
         int getIndexX(Direction face, int corner) {
             int x = face.getStepX();
-            return switch (corner) {
-                case LU -> getIndex(this.connects[1][1][1+x], this.connects[1][2][1], this.connects[1][2][1+x]);
-                case RU -> getIndex(this.connects[1][1][1-x], this.connects[1][2][1], this.connects[1][2][1-x]);
-                case LD -> getIndex(this.connects[1][1][1+x], this.connects[1][0][1], this.connects[1][0][1+x]);
-                case RD -> getIndex(this.connects[1][1][1-x], this.connects[1][0][1], this.connects[1][0][1-x]);
-                default -> -1;
-            };
+            switch (corner) {
+                case LU: return getIndex(this.connects[1][1][1+x], this.connects[1][2][1], this.connects[1][2][1+x]);
+                case RU: return getIndex(this.connects[1][1][1-x], this.connects[1][2][1], this.connects[1][2][1-x]);
+                case LD: return getIndex(this.connects[1][1][1+x], this.connects[1][0][1], this.connects[1][0][1+x]);
+                case RD: return getIndex(this.connects[1][1][1-x], this.connects[1][0][1], this.connects[1][0][1-x]);
+                default: return -1;
+            }
         }
 
         int getIndexZ(Direction face, int corner) {
             int z = face.getStepZ();
-            return switch (corner) {
-                case LU -> getIndex(this.connects[1-z][1][1], this.connects[1][2][1], this.connects[1-z][2][1]);
-                case RU -> getIndex(this.connects[1+z][1][1], this.connects[1][2][1], this.connects[1+z][2][1]);
-                case LD -> getIndex(this.connects[1-z][1][1], this.connects[1][0][1], this.connects[1-z][0][1]);
-                case RD -> getIndex(this.connects[1+z][1][1], this.connects[1][0][1], this.connects[1+z][0][1]);
-                default -> -1;
-            };
+            switch (corner) {
+                case LU: return getIndex(this.connects[1-z][1][1], this.connects[1][2][1], this.connects[1-z][2][1]);
+                case RU: return getIndex(this.connects[1+z][1][1], this.connects[1][2][1], this.connects[1+z][2][1]);
+                case LD: return getIndex(this.connects[1-z][1][1], this.connects[1][0][1], this.connects[1-z][0][1]);
+                case RD: return getIndex(this.connects[1+z][1][1], this.connects[1][0][1], this.connects[1+z][0][1]);
+                default: return -1;
+            }
         }
 
         int getIndexY(Direction face, int corner) {
             int y = face.getStepY();
-            return switch (corner) {
-                case LU -> getIndex(this.connects[1][1][2], this.connects[1-y][1][1], this.connects[1-y][1][2]);
-                case RU -> getIndex(this.connects[1][1][0], this.connects[1-y][1][1], this.connects[1-y][1][0]);
-                case LD -> getIndex(this.connects[1][1][2], this.connects[1+y][1][1], this.connects[1+y][1][2]);
-                case RD -> getIndex(this.connects[1][1][0], this.connects[1+y][1][1], this.connects[1+y][1][0]);
-                default -> -1;
-            };
+            switch (corner) {
+                case LU: return getIndex(this.connects[1][1][2], this.connects[1-y][1][1], this.connects[1-y][1][2]);
+                case RU: return getIndex(this.connects[1][1][0], this.connects[1-y][1][1], this.connects[1-y][1][0]);
+                case LD: return getIndex(this.connects[1][1][2], this.connects[1+y][1][1], this.connects[1+y][1][2]);
+                case RD: return getIndex(this.connects[1][1][0], this.connects[1+y][1][1], this.connects[1+y][1][0]);
+                default: return -1;
+            }
         }
 
         /**
@@ -377,8 +371,31 @@ public class AssemblerGlassBakedModel implements IDynamicBakedModel {
 
     }
 
-    private record FaceCorner(Direction face, int corner) {
+    private static final class FaceCorner {
+        private final Direction face;
+        private final int corner;
 
+        private FaceCorner(Direction face, int corner) {
+            this.face = face;
+            this.corner = corner;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof FaceCorner)) {
+                return false;
+            }
+            FaceCorner other = (FaceCorner) obj;
+            return this.corner == other.corner && this.face == other.face;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(this.face, this.corner);
+        }
     }
 
 }
